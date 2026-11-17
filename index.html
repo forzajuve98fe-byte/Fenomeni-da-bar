@@ -1,587 +1,75 @@
 <!DOCTYPE html>
 <html lang="it">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fenomeni da Bar ⚽</title>
-    <style>
-      :root {
-        --bg: #0a1017;
-        --bg-2: #111d2d;
-        --surface: #132536;
-        --surface-2: #1b3045;
-        --surface-3: #203a54;
-        --border: rgba(148, 163, 184, 0.28);
-        --text: #edf5ff;
-        --muted: #9db7cf;
-        --accent: #22c55e;
-        --accent-strong: #16a34a;
-        --gold: #fbbf24;
-        --danger: #ef4444;
-        --info: #38bdf8;
-      }
-
-      * { box-sizing: border-box; }
-
-      html, body {
-        margin: 0;
-        min-height: 100%;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        background:
-          radial-gradient(circle at top, rgba(56, 189, 248, 0.15), transparent 20%),
-          radial-gradient(circle at right, rgba(34, 197, 94, 0.12), transparent 22%),
-          var(--bg);
-        color: var(--text);
-      }
-
-      body {
-        padding: 24px 16px 60px;
-      }
-
-      .container {
-        max-width: 980px;
-        margin: 0 auto;
-      }
-
-      header {
-        background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(19, 37, 54, 1));
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 20px 18px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.2);
-      }
-
-      .brand {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .eyebrow {
-        margin: 0;
-        color: var(--info);
-        font-size: 0.72rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        font-weight: 700;
-      }
-
-      .brand h1 {
-        margin: 0;
-        font-size: clamp(1.5rem, 3vw, 2.3rem);
-        letter-spacing: -0.03em;
-      }
-
-      .brand p {
-        margin: 0;
-        color: var(--muted);
-        font-size: 0.88rem;
-      }
-
-      .status-pill {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(15, 23, 42, 0.52);
-        color: var(--text);
-        border: 1px solid var(--border);
-        font-size: 0.8rem;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-      }
-
-      .status-pill.live {
-        color: #b9f7d4;
-        border-color: rgba(34, 197, 94, 0.45);
-        background: rgba(34, 197, 94, 0.12);
-      }
-
-      nav.tabs {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin: 16px 0 18px;
-      }
-
-      nav.tabs button {
-        border: 1px solid var(--border);
-        background: rgba(19, 37, 54, 0.9);
-        color: var(--muted);
-        border-radius: 12px;
-        padding: 10px 14px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s ease;
-      }
-
-      nav.tabs button:hover {
-        border-color: rgba(56, 189, 248, 0.4);
-        color: var(--text);
-      }
-
-      nav.tabs button.active {
-        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-        color: #052e16;
-        border-color: transparent;
-      }
-
-      .tab-panel {
-        display: none;
-      }
-
-      .tab-panel.active {
-        display: block;
-      }
-
-      .card {
-        background: linear-gradient(180deg, rgba(19, 37, 54, 0.96), rgba(17, 29, 45, 0.9));
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 16px;
-        margin-bottom: 14px;
-        box-shadow: 0 10px 26px rgba(0,0,0,0.14);
-      }
-
-      .card h2 {
-        font-size: 1.08rem;
-        margin: 0 0 12px;
-      }
-
-      .card h3 {
-        font-size: 0.98rem;
-        color: var(--info);
-        margin: 0 0 12px;
-      }
-
-      .muted {
-        color: var(--muted);
-        font-size: 0.88rem;
-      }
-
-      .grid-2 {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 12px;
-      }
-
-      label {
-        display: block;
-        font-size: 0.79rem;
-        color: var(--muted);
-        margin-bottom: 6px;
-        font-weight: 600;
-      }
-
-      input, select {
-        width: 100%;
-        background: rgba(9, 17, 24, 0.8);
-        color: var(--text);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 10px 12px;
-        font-size: 0.92rem;
-      }
-
-      input:focus, select:focus {
-        outline: none;
-        border-color: rgba(56, 189, 248, 0.62);
-        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
-      }
-
-      .btn {
-        appearance: none;
-        border: none;
-        border-radius: 10px;
-        padding: 10px 14px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: transform 0.15s ease, opacity 0.15s ease;
-      }
-
-      .btn:hover {
-        transform: translateY(-1px);
-        opacity: 0.98;
-      }
-
-      .btn.primary {
-        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-        color: #062b12;
-      }
-
-      .btn.secondary {
-        background: rgba(148, 163, 184, 0.08);
-        border: 1px solid var(--border);
-        color: var(--text);
-      }
-
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 14px;
-      }
-
-      .result-box {
-        margin-top: 16px;
-        padding: 14px 16px;
-        border-radius: 12px;
-        border: 1px solid rgba(34, 197, 94, 0.3);
-        background: rgba(34, 197, 94, 0.08);
-        color: var(--text);
-        min-height: 64px;
-      }
-
-      .result-box strong {
-        color: #b9f7d4;
-      }
-
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 12px;
-      }
-
-      .stat {
-        background: rgba(11, 18, 26, 0.7);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 14px 12px;
-      }
-
-      .stat span {
-        display: block;
-        font-size: 0.72rem;
-        color: var(--muted);
-        margin-bottom: 8px;
-      }
-
-      .stat strong {
-        font-size: 1.6rem;
-        letter-spacing: -0.04em;
-      }
-
-      .match-list,
-      .leaderboard,
-      .rules-list {
-        display: grid;
-        gap: 12px;
-      }
-
-      .match-item,
-      .leader-item,
-      .rule-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        background: rgba(11, 18, 26, 0.7);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 12px 14px;
-      }
-
-      .match-item .teams {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: 600;
-      }
-
-      .score-chip {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 68px;
-        padding: 8px 10px;
-        border-radius: 999px;
-        background: rgba(56, 189, 248, 0.12);
-        color: var(--info);
-        border: 1px solid rgba(56, 189, 248, 0.3);
-        font-weight: 700;
-      }
-
-      .leader-item .name {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: 600;
-      }
-
-      .rank-badge {
-        width: 28px;
-        height: 28px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        background: rgba(251, 191, 36, 0.15);
-        color: var(--gold);
-        border: 1px solid rgba(251, 191, 36, 0.4);
-        font-size: 0.8rem;
-        font-weight: 700;
-      }
-
-      .punti {
-        min-width: 52px;
-        text-align: right;
-        font-weight: 700;
-        color: var(--accent);
-      }
-
-      .rules-list {
-        margin-top: 8px;
-      }
-
-      .rule-item {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .rule-item strong {
-        color: var(--text);
-      }
-
-      @media (max-width: 560px) {
-        body {
-          padding-left: 12px;
-          padding-right: 12px;
-        }
-
-        header {
-          padding: 16px 14px;
-        }
-
-        .actions {
-          flex-direction: column;
-        }
-
-        .btn {
-          width: 100%;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <header>
-        <div class="brand">
-          <p class="eyebrow">Gioco da bar • settimana 17</p>
-          <h1>Fenomeni da Bar</h1>
-          <p>Pronostici, risultati e classifica in un colpo d'occhio.</p>
-        </div>
-        <div class="status-pill live">● LIVE</div>
-      </header>
-
-      <nav class="tabs" aria-label="Sezioni principali">
-        <button class="active" type="button">Partite</button>
-        <button type="button">Classifica</button>
-        <button type="button">Regole</button>
-      </nav>
-
-      <section class="tab-panel active" id="panel-partite">
-        <div class="card">
-          <h2>Pronostico del giorno</h2>
-          <div class="grid-2">
-            <div>
-              <label for="homeTeam">Casa</label>
-              <select id="homeTeam">
-                <option value="">Scegli squadra</option>
-                <option value="Juventus">Juventus</option>
-                <option value="Inter">Inter</option>
-                <option value="Milan">Milan</option>
-                <option value="Napoli">Napoli</option>
-                <option value="Roma">Roma</option>
-                <option value="Lazio">Lazio</option>
-                <option value="Fiorentina">Fiorentina</option>
-                <option value="Torino">Torino</option>
-              </select>
-            </div>
-            <div>
-              <label for="awayTeam">Trasferta</label>
-              <select id="awayTeam">
-                <option value="">Scegli squadra</option>
-                <option value="Juventus">Juventus</option>
-                <option value="Inter">Inter</option>
-                <option value="Milan">Milan</option>
-                <option value="Napoli">Napoli</option>
-                <option value="Roma">Roma</option>
-                <option value="Lazio">Lazio</option>
-                <option value="Fiorentina">Fiorentina</option>
-                <option value="Torino">Torino</option>
-              </select>
-            </div>
-            <div>
-              <label for="market">Mercato</label>
-              <select id="market">
-                <option value="1X2">1X2</option>
-                <option value="Over/Under">Over/Under</option>
-                <option value="Doppia chance">Doppia chance</option>
-                <option value="Goal/No Goal">Goal/No Goal</option>
-              </select>
-            </div>
-            <div>
-              <label for="stake">Quota</label>
-              <select id="stake">
-                <option value="1.5">1.50</option>
-                <option value="2.0">2.00</option>
-                <option value="2.5">2.50</option>
-                <option value="3.0">3.00</option>
-                <option value="4.0">4.00</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="btn primary" id="generateForecast" type="button">Genera pronostico</button>
-            <button class="btn secondary" id="resetForecast" type="button">Reset</button>
-          </div>
-
-          <div class="result-box" id="forecastBox">
-            <strong>Pronto.</strong> Scegli una sfida e prepara il tuo pronostico.
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>In evidenza</h3>
-          <div class="stats-grid">
-            <div class="stat">
-              <span>Partite</span>
-              <strong>38</strong>
-            </div>
-            <div class="stat">
-              <span>Gol medi</span>
-              <strong>2.7</strong>
-            </div>
-            <div class="stat">
-              <span>Vincite</span>
-              <strong>64%</strong>
-            </div>
-            <div class="stat">
-              <span>Top form</span>
-              <strong>+9</strong>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="tab-panel" id="panel-classifica">
-        <div class="card">
-          <h2>Classifica</h2>
-          <div class="leaderboard">
-            <div class="leader-item">
-              <div class="name"><span class="rank-badge">1</span> Marco</div>
-              <div class="punti">148</div>
-            </div>
-            <div class="leader-item">
-              <div class="name"><span class="rank-badge">2</span> Luca</div>
-              <div class="punti">141</div>
-            </div>
-            <div class="leader-item">
-              <div class="name"><span class="rank-badge">3</span> Raffaele</div>
-              <div class="punti">136</div>
-            </div>
-            <div class="leader-item">
-              <div class="name"><span class="rank-badge">4</span> Davide</div>
-              <div class="punti">129</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="tab-panel" id="panel-regole">
-        <div class="card">
-          <h2>Regole del gioco</h2>
-          <div class="rules-list">
-            <div class="rule-item">
-              <strong>1. Pronostico settimanale</strong>
-              <span class="muted">Seleziona una partita e inserisci il tuo risultato o il mercato preferito.</span>
-            </div>
-            <div class="rule-item">
-              <strong>2. Punti</strong>
-              <span class="muted">Vinci 3 punti per esito corretto, 1 punto per risultato corretto in parziale.</span>
-            </div>
-            <div class="rule-item">
-              <strong>3. Bonus</strong>
-              <span class="muted">Segnala una doppia chance o un over/under perfetto per sbloccare bonus extra.</span>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <script>
-      const tabButtons = document.querySelectorAll('nav.tabs button');
-      const tabPanels = document.querySelectorAll('.tab-panel');
-
-      tabButtons.forEach((button, index) => {
-        button.addEventListener('click', () => {
-          tabButtons.forEach((btn) => btn.classList.remove('active'));
-          button.classList.add('active');
-
-          tabPanels.forEach((panel) => panel.classList.remove('active'));
-          const target = index === 0 ? document.getElementById('panel-partite') : index === 1 ? document.getElementById('panel-classifica') : document.getElementById('panel-regole');
-          target.classList.add('active');
-        });
-      });
-
-      const homeTeam = document.getElementById('homeTeam');
-      const awayTeam = document.getElementById('awayTeam');
-      const market = document.getElementById('market');
-      const stake = document.getElementById('stake');
-      const forecastBox = document.getElementById('forecastBox');
-
-      document.getElementById('generateForecast').addEventListener('click', () => {
-        const home = homeTeam.value;
-        const away = awayTeam.value;
-
-        if (!home || !away || home === away) {
-          forecastBox.innerHTML = '<strong>Attenzione.</strong> Scegli due squadre diverse per generare il pronostico.';
-          return;
-        }
-
-        const goalHome = Math.floor(Math.random() * 4);
-        const goalAway = Math.floor(Math.random() * 3);
-        const selectedMarket = market.value;
-        const quota = Number(stake.value);
-
-        const buildPrediction = () => {
-          const forecasts = {
-            '1X2': `${home} vince ${goalHome}-${goalAway}`,
-            'Over/Under': `Over 2.5: ${goalHome + goalAway >= 3 ? 'Si' : 'No'}`,
-            'Doppia chance': `${home} o pareggio`,
-            'Goal/No Goal': `${goalHome + goalAway > 0 ? 'Goal' : 'No Goal'}`
-          };
-
-          return forecasts[selectedMarket] || `${home} ${goalHome}-${goalAway} ${away}`;
-        };
-
-        const resultText = buildPrediction();
-        const points = Math.max(1, Math.round(quota * 2));
-
-        forecastBox.innerHTML = `
-          <strong>Pronostico pronto:</strong> ${home} vs ${away}<br>
-          <span class="muted">Mercato: ${selectedMarket}</span><br>
-          <strong>Segnala:</strong> ${resultText}<br>
-          <strong>Momento giusto:</strong> +${points} punti potenziali
-        `;
-      });
-
-      document.getElementById('resetForecast').addEventListener('click', () => {
-        homeTeam.value = '';
-        awayTeam.value = '';
-        market.value = '1X2';
-        stake.value = '1.5';
-        forecastBox.innerHTML = '<strong>Pronto.</strong> Scegli una sfida e prepara il tuo pronostico.';
-      });
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fenomeni da Bar ⚽</title>
+  <style>
+    :root{--bg:#0a1017;--surface:#132536;--border:rgba(148,163,184,.28);--text:#edf5ff;--muted:#9db7cf;--accent:#22c55e;--gold:#fbbf24;--danger:#ef4444;--info:#38bdf8}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at top,rgba(56,189,248,.15),transparent 20%),radial-gradient(circle at right,rgba(34,197,94,.12),transparent 22%),var(--bg);color:var(--text)}body{padding:24px 16px 60px}.container{max-width:980px;margin:auto}
+    header{background:linear-gradient(135deg,rgba(34,197,94,.12),rgba(19,37,54,1));border:1px solid var(--border);border-radius:18px;padding:20px 18px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}.brand h1{margin:0;font-size:clamp(1.5rem,3vw,2.3rem)}.brand p{margin:4px 0 0;color:var(--muted);font-size:.88rem}.status-pill{padding:8px 12px;border-radius:999px;background:rgba(15,23,42,.52);border:1px solid var(--border);font-size:.8rem;font-weight:600}.status-pill.live{color:#b9f7d4;border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.12)}
+    nav.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 18px}nav.tabs button{border:1px solid var(--border);background:rgba(19,37,54,.9);color:var(--muted);border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer}nav.tabs button.active{background:linear-gradient(135deg,var(--accent),#16a34a);color:#052e16;border-color:transparent}.card{background:linear-gradient(180deg,rgba(19,37,54,.96),rgba(17,29,45,.9));border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 10px 26px rgba(0,0,0,.14)}.card h2{font-size:1.08rem;margin:0 0 12px}.card h3{font-size:.98rem;color:var(--info);margin:0 0 12px}.muted{color:var(--muted);font-size:.88rem}
+    .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}label{display:block;font-size:.79rem;color:var(--muted);margin:0 0 6px;font-weight:600}input,select{width:100%;background:rgba(9,17,24,.8);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:.92rem}input:focus,select:focus{outline:none;border-color:rgba(56,189,248,.62)}.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}.primary{background:linear-gradient(135deg,var(--accent),#16a34a);color:#062b12}.secondary{background:rgba(148,163,184,.08);border:1px solid var(--border);color:var(--text)}.danger{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);color:#fecaca}.row-actions,.round-picker{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.round-button{background:rgba(148,163,184,.08);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px 12px;cursor:pointer}.round-button.active{background:linear-gradient(135deg,var(--accent),#16a34a);color:#062b12}.match-box,.ban-box{background:rgba(148,163,184,.06);border:1px solid var(--border);border-radius:12px;padding:12px;margin:9px 0}.match-top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.74rem;font-weight:700}.gold{color:#fde68a;background:rgba(251,191,36,.14)}.green{color:#b9f7d4;background:rgba(34,197,94,.14)}.ban-box{border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.08)}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--border)}th{color:var(--muted);font-size:.74rem;text-transform:uppercase}.editor{padding:10px;border:1px solid var(--border);border-radius:12px;margin:9px 0}.info{padding:10px 12px;border-radius:10px;margin:10px 0;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);color:#c7eafa}.alert{padding:10px 12px;border-radius:10px;margin-top:10px}.hidden{display:none!important}@media(max-width:680px){body{padding:16px 12px 48px}nav.tabs{overflow-x:auto;flex-wrap:nowrap}.editor-grid{grid-template-columns:1fr!important}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header><div class="brand"><h1>⚽ Fenomeni da Bar</h1><p id="headerSubtitle">Serie A • 10 Giornate • Fino a 20 Giocatori</p></div><div id="syncBadge" class="status-pill">Caricamento…</div></header>
+    <nav class="tabs" role="tablist">
+      <button type="button" class="active" data-tab="play">🎯 Gioca & BAN</button><button type="button" data-tab="calendar">📅 Calendario</button><button type="button" data-tab="standings">🏆 Classifica</button><button type="button" data-tab="players">👥 Partecipanti</button><button type="button" data-tab="rules">📜 Regolamento</button><button type="button" data-tab="admin">⚙️ Admin</button>
+    </nav>
+    <main id="appContent"></main>
+  </div>
+<script>
+(() => {
+  const STORAGE_KEY="fenomeni_da_bar_v1",SESSION_KEY="fenomeni_da_bar_session_v1",DB_URL="https://fenomeni-da-bar-default-rtdb.europe-west1.firebasedatabase.app/fenomeni_da_bar.json",MAX_PLAYERS=20,TOTAL_ROUNDS=10;
+  const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function emptyRounds(){const x={};for(let n=1;n<=TOTAL_ROUNDS;n++)x[n]={deadline:"",matches:[],picks:{},banWinnerId:null,bannedMatchId:null};return x}
+  function seed(){const s={adminPin:"1234",activeRound:1,players:["Alex","Marco","Luca","Teo","Vale","Fede","Simò","Dany","Ricky","Giò"].map((name,i)=>({id:`p${i+1}`,name,pin:String((i+1)*1111)})),rounds:emptyRounds(),scoreAdjustments:{}};s.rounds[1].deadline="2026-11-20T20:45";s.rounds[1].matches=[{id:"m101",home:"Inter",away:"Atalanta",time:"Ven 20:45",status:"played",goals:4,cardPoints:5},{id:"m102",home:"Venezia",away:"Roma",time:"Sab 15:00",status:"played",goals:1,cardPoints:3},{id:"m103",home:"Bologna",away:"Parma",time:"Sab 18:00",status:"played",goals:2,cardPoints:7},{id:"m104",home:"Milan",away:"Juventus",time:"Sab 20:45",status:"played",goals:2,cardPoints:6}];s.rounds[1].picks={p1:{moreGoals:"m101",lessGoals:"m102",moreCards:"m103"},p2:{moreGoals:"m101",lessGoals:"m102",moreCards:"m104"},p3:{moreGoals:"m103",lessGoals:"m102",moreCards:"m103"}};s.rounds[2].deadline="2026-11-27T20:45";s.rounds[2].matches=[{id:"m201",home:"Napoli",away:"Lazio",time:"Ven 20:45",status:"scheduled",goals:0,cardPoints:0},{id:"m202",home:"Fiorentina",away:"Como",time:"Sab 15:00",status:"scheduled",goals:0,cardPoints:0},{id:"m203",home:"Torino",away:"Genoa",time:"Sab 18:00",status:"scheduled",goals:0,cardPoints:0},{id:"m204",home:"Udinese",away:"Cagliari",time:"Dom 12:30",status:"scheduled",goals:0,cardPoints:0}];s.rounds[2].banWinnerId="p1";s.rounds[2].bannedMatchId="m201";return s}
+  function normalize(raw){const fallback=seed(),src=raw&&typeof raw==="object"?raw:fallback,rounds={};for(let i=1;i<=TOTAL_ROUNDS;i++){const r=src.rounds?.[i]||{};rounds[i]={deadline:r.deadline||"",matches:Array.isArray(r.matches)?r.matches:[],picks:r.picks&&typeof r.picks==="object"?r.picks:{},banWinnerId:r.banWinnerId||null,bannedMatchId:r.bannedMatchId||null}}return{adminPin:src.adminPin||"1234",activeRound:Math.min(TOTAL_ROUNDS,Math.max(1,Number(src.activeRound)||1)),players:(Array.isArray(src.players)?src.players:fallback.players).slice(0,MAX_PLAYERS).map((p,i)=>({id:p.id||`p${i+1}`,name:p.name||`Giocatore ${i+1}`,pin:String(p.pin??(1000+i+1))})),rounds,scoreAdjustments:src.scoreAdjustments||{}}}
+  function loadLocal(){try{const x=localStorage.getItem(STORAGE_KEY);return x?normalize(JSON.parse(x)):seed()}catch{return seed()}}
+  let state=loadLocal(),tab="play",adminUnlocked=false,activePlayerId=null,remoteLoaded=false,saving=false;
+  try{activePlayerId=JSON.parse(localStorage.getItem(SESSION_KEY)||"null")?.playerId||null}catch{}
+  const saveLocal=()=>{try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}catch{}},saveSession=()=>{try{localStorage.setItem(SESSION_KEY,JSON.stringify({playerId:activePlayerId}))}catch{}},getPlayer=id=>state.players.find(p=>p.id===id)||null,getMatch=(r,id)=>state.rounds[r]?.matches.find(m=>m.id===id)||null;
+  async function firebaseRead(){try{const r=await fetch(DB_URL,{cache:"no-store"});if(!r.ok)throw Error(`HTTP ${r.status}`);const data=await r.json();if(data&&typeof data==="object"){state=normalize(data);saveLocal();remoteLoaded=true;render();return true}return false}catch(e){console.warn("Firebase read",e);return false}}
+  async function firebaseWrite(){if(saving)return false;saving=true;try{const r=await fetch(DB_URL,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(state)});if(!r.ok)throw Error(`HTTP ${r.status}`);return true}catch(e){console.warn("Firebase write",e);return false}finally{saving=false;updateBadge()}}
+  async function persist(){saveLocal();const ok=await firebaseWrite();updateBadge();if(!ok)console.warn("Dati salvati solo su questo browser: Firebase ha rifiutato la scrittura o non è raggiungibile.");return ok}
+  function updateBadge(){const b=document.getElementById("syncBadge");if(!b)return;b.classList.toggle("live",remoteLoaded&&!saving);b.textContent=saving?"⏳ Sincronizzazione…":remoteLoaded?"🔥 Firebase sincronizzato":"⚠️ Solo questo browser"}
+  function winners(n){const a=state.rounds[n].matches.filter(m=>m.status==="played");if(!a.length)return{moreGoals:[],lessGoals:[],moreCards:[]};const g=a.map(m=>Number(m.goals)||0),c=a.map(m=>Number(m.cardPoints)||0),max=Math.max(...g),min=Math.min(...g),maxC=Math.max(...c);return{moreGoals:a.filter(m=>(Number(m.goals)||0)===max).map(m=>m.id),lessGoals:a.filter(m=>(Number(m.goals)||0)===min).map(m=>m.id),moreCards:a.filter(m=>(Number(m.cardPoints)||0)===maxC).map(m=>m.id)}}
+  function points(n,id){const p=state.rounds[n].picks[id];if(!p)return{total:0,hits:0,perfect:false};const w=winners(n);let hits=0;for(const k of ["moreGoals","lessGoals","moreCards"])if(p[k]&&w[k].includes(p[k]))hits++;return{total:hits+(hits===3?1:0),hits,perfect:hits===3}}
+  function standings(){return state.players.map(p=>{let base=0,hits=0,perfect=0,wins=0;for(let n=1;n<=TOTAL_ROUNDS;n++){const q=points(n,p.id);base+=q.total;hits+=q.hits;if(q.perfect)perfect++;const vals=state.players.map(x=>points(n,x.id).total),max=Math.max(0,...vals);if(max>0&&q.total===max)wins++}const adjust=Number(state.scoreAdjustments?.[p.id])||0;return{player:p,base,total:base+adjust,adjust,hits,perfect,wins}}).sort((a,b)=>b.total-a.total||b.hits-a.hits)}
+  function roundPicker(){return Array.from({length:TOTAL_ROUNDS},(_,i)=>i+1).map(n=>`<button type="button" class="round-button ${n===state.activeRound?"active":""}" data-round="${n}">${n}</button>`).join("")}
+  function login(){return `<section class="card"><h2>🔒 Accesso partecipanti</h2><div class="grid-2"><div><label for="loginPlayer">Giocatore</label><select id="loginPlayer"><option value="">Seleziona partecipante</option>${state.players.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("")}</select></div><div><label for="loginPin">PIN</label><input id="loginPin" type="password" inputmode="numeric" placeholder="Inserisci il PIN"></div></div><div class="row-actions"><button class="btn primary" data-login>Accedi</button></div></section>`}
+  function renderPlay(){const r=state.rounds[state.activeRound],p=getPlayer(activePlayerId),ban=getMatch(state.activeRound,r.bannedMatchId),banPerson=getPlayer(r.banWinnerId);if(!p)return `${login()}<section class="card"><h2>🎯 Round ${state.activeRound}</h2><div class="round-picker">${roundPicker()}</div><div class="ban-box">Potere BAN: <strong>${esc(banPerson?.name||"Non assegnato")}</strong>${ban?` · Match bannato: ${esc(ban.home)} vs ${esc(ban.away)}`:""}</div></section>`;const pick=r.picks[p.id]||{};const options=(field)=>`<option value="">-- Seleziona partita --</option>${r.matches.map(m=>`<option value="${esc(m.id)}" ${pick[field]===m.id?"selected":""}>${esc(m.home)} vs ${esc(m.away)}</option>`).join("")}`;return `<section class="card"><h2>🎯 Seleziona round</h2><div class="round-picker">${roundPicker()}</div><div class="row-actions"><button class="btn primary" data-save-pick>Salva schedina</button><button class="btn secondary" data-logout>Esci da ${esc(p.name)}</button></div></section><section class="card"><h2>📌 Round ${state.activeRound}</h2><div class="muted">Partecipante: <strong>${esc(p.name)}</strong> · Deadline: ${esc(r.deadline||"Non impostata")}</div><div class="ban-box">Potere BAN: <strong>${esc(banPerson?.name||"Non assegnato")}</strong>${ban?` · Partita esclusa: ${esc(ban.home)} vs ${esc(ban.away)}`:" · Nessuna partita esclusa"}</div><div class="grid-2"><div><label>Più gol</label><select data-pick="moreGoals">${options("moreGoals")}</select></div><div><label>Meno gol</label><select data-pick="lessGoals">${options("lessGoals")}</select></div><div><label>Più cartellini</label><select data-pick="moreCards">${options("moreCards")}</select></div></div></section>`}
+  function renderCalendar(){return Array.from({length:TOTAL_ROUNDS},(_,i)=>i+1).map(n=>{const r=state.rounds[n];return `<section class="card"><h2>📅 Round ${n}</h2>${r.matches.length?r.matches.map(m=>`<div class="match-box"><div class="match-top"><strong>${esc(m.home)} vs ${esc(m.away)}</strong><span class="badge ${m.status==="played"?"green":"gold"}">${m.status==="played"?"Giocata":m.status==="live"?"In corso":"Programmata"}</span></div><div class="muted">${esc(m.time)}</div>${m.status==="played"?`<div class="muted">Gol totali ${Number(m.goals)||0} · Cartellini ${Number(m.cardPoints)||0}</div>`:""}</div>`).join(""):`<p class="muted">Nessuna partita impostata.</p>`}</section>`}).join("")}
+  function renderStandings(){return `<section class="card"><h2>🏆 Classifica</h2><div style="overflow-x:auto"><table><thead><tr><th>Giocatore</th><th>Punti</th><th>Correzione</th><th>Hit</th><th>En plein</th><th>Vittorie</th></tr></thead><tbody>${standings().map(x=>`<tr><td><strong>${esc(x.player.name)}</strong></td><td>${x.total}</td><td>${x.adjust>0?"+":""}${x.adjust}</td><td>${x.hits}</td><td>${x.perfect}</td><td>${x.wins}</td></tr>`).join("")}</tbody></table></div></section>`}
+  function renderPlayers(){return `<section class="card"><h2>👥 Partecipanti</h2><table><thead><tr><th>Nome</th><th>ID</th></tr></thead><tbody>${state.players.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.id)}</td></tr>`).join("")}</tbody></table></section>`}
+  function renderRules(){return `<section class="card"><h2>📜 Regolamento</h2><ul class="rules-list"><li>Ogni partecipante seleziona una partita per più gol, meno gol e più cartellini.</li><li>Ogni scelta corretta vale 1 punto; un en plein (3/3) vale +1.</li><li>L'admin gestisce calendario, risultati, classifica e BAN.</li><li>Il BAN indica il giocatore che possiede il potere e il match escluso.</li></ul></section>`}
+  function renderAdmin(){if(!adminUnlocked)return `<section class="card"><h2>🔒 Accesso admin</h2><label for="adminPin">PIN admin</label><input id="adminPin" type="password" inputmode="numeric" placeholder="Inserisci PIN admin"><div class="row-actions"><button class="btn primary" data-admin-login>Accedi</button></div></section>`;const r=state.rounds[state.activeRound];return `<section class="card"><h2>⚙️ Pannello admin</h2><div class="grid-2"><div><label>Round attivo</label><select id="adminRound">${Array.from({length:TOTAL_ROUNDS},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===state.activeRound?"selected":""}>Round ${n}</option>`).join("")}</select></div><div><label>Deadline</label><input id="deadline" type="datetime-local" value="${esc(r.deadline)}"></div></div><div class="row-actions"><button class="btn primary" data-save-round>Salva round</button><button class="btn secondary" data-admin-logout>Esci admin</button></div><p class="info">Firebase REST è collegato. Questa versione base salva l'intero stato e richiede regole Realtime Database che consentano la scrittura: i PIN non sono protetti. Non usare dati sensibili o regole pubbliche in produzione.</p></section>
+    <section class="card"><h2>🏆 Correzione classifica</h2>${state.players.map(p=>`<div class="grid-2" style="margin:8px 0"><div><label>${esc(p.name)}</label></div><div><label>Modifica punti (+/-)</label><input type="number" step="1" data-adjust="${esc(p.id)}" value="${Number(state.scoreAdjustments[p.id])||0}"></div></div>`).join("")}<div class="row-actions"><button class="btn primary" data-save-adjust>Salva classifica</button></div></section>
+    <section class="card"><h2>🚫 Potere BAN · Round ${state.activeRound}</h2><div class="grid-2"><div><label>Chi ha il potere?</label><select id="banPlayer"><option value="">Non assegnato</option>${state.players.map(p=>`<option value="${esc(p.id)}" ${r.banWinnerId===p.id?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div><div><label>Partita esclusa</label><select id="banMatch"><option value="">Nessuna</option>${r.matches.map(m=>`<option value="${esc(m.id)}" ${r.bannedMatchId===m.id?"selected":""}>${esc(m.home)} vs ${esc(m.away)}</option>`).join("")}</select></div></div><div class="row-actions"><button class="btn primary" data-save-ban>Salva BAN</button></div></section>
+    <section class="card"><h2>👥 Partecipanti e PIN</h2>${state.players.map(p=>`<div class="editor"><div class="grid-2"><div><label>Nome</label><input data-name="${esc(p.id)}" value="${esc(p.name)}"></div><div><label>PIN partecipante</label><input data-pin="${esc(p.id)}" value="${esc(p.pin)}"></div></div><div class="row-actions"><button class="btn danger" data-delete-player="${esc(p.id)}">Elimina</button></div></div>`).join("")}<div class="row-actions"><button class="btn primary" data-add-player>Aggiungi partecipante</button><button class="btn secondary" data-save-players>Salva nomi e PIN</button></div></section>
+    <section class="card"><h2>⚽ Partite del round ${state.activeRound}</h2>${r.matches.map((m,i)=>`<div class="editor" data-match-row="${i}"><div class="grid-2 editor-grid"><div><label>Casa</label><input data-home value="${esc(m.home)}"></div><div><label>Trasferta</label><input data-away value="${esc(m.away)}"></div><div><label>Orario</label><input data-time value="${esc(m.time)}"></div><div><label>Stato</label><select data-status><option value="scheduled" ${m.status==="scheduled"?"selected":""}>Programmato</option><option value="live" ${m.status==="live"?"selected":""}>In corso</option><option value="played" ${m.status==="played"?"selected":""}>Giocato</option></select></div><div><label>Gol totali</label><input type="number" min="0" data-goals value="${Number(m.goals)||0}"></div><div><label>Punti cartellini</label><input type="number" min="0" data-cards value="${Number(m.cardPoints)||0}"></div></div><div class="row-actions"><button class="btn danger" data-delete-match="${i}">Rimuovi</button></div></div>`).join("")||`<p class="muted">Nessuna partita per questo round.</p>`}<div class="row-actions"><button class="btn primary" data-add-match>Aggiungi partita</button><button class="btn secondary" data-save-matches>Salva partite</button></div></section>`}
+  function render(){const app=document.getElementById("appContent");const views={play:renderPlay(),calendar:renderCalendar(),standings:renderStandings(),players:renderPlayers(),rules:renderRules(),admin:renderAdmin()};app.innerHTML=views[tab]||views.play;document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));document.getElementById("headerSubtitle").textContent=`Serie A • Round ${state.activeRound} • ${state.players.length} Partecipanti`;updateBadge()}
+  document.addEventListener("click",async e=>{const t=e.target.closest("[data-tab]");if(t){tab=t.dataset.tab;render();return}const rb=e.target.closest("[data-round]");if(rb){state.activeRound=Number(rb.dataset.round);await persist();render();return}
+    if(e.target.closest("[data-login]")){const p=getPlayer(document.getElementById("loginPlayer").value);if(!p||String(p.pin)!==document.getElementById("loginPin").value){alert("Partecipante o PIN errato");return}activePlayerId=p.id;saveSession();render();return}
+    if(e.target.closest("[data-logout]")){activePlayerId=null;saveSession();render();return}
+    if(e.target.closest("[data-admin-login]")){if(document.getElementById("adminPin").value===String(state.adminPin)){adminUnlocked=true;render()}else alert("PIN admin errato");return}
+    if(e.target.closest("[data-admin-logout]")){adminUnlocked=false;render();return}
+    if(e.target.closest("[data-save-pick]")){const p=getPlayer(activePlayerId);if(!p)return;const pick={};document.querySelectorAll("[data-pick]").forEach(x=>pick[x.dataset.pick]=x.value||"");state.rounds[state.activeRound].picks[p.id]=pick;await persist();alert("Schedina salvata");render();return}
+    if(e.target.closest("[data-save-round]")){state.activeRound=Number(document.getElementById("adminRound").value);state.rounds[state.activeRound].deadline=document.getElementById("deadline").value;await persist();render();return}
+    if(e.target.closest("[data-save-adjust]")){document.querySelectorAll("[data-adjust]").forEach(x=>state.scoreAdjustments[x.dataset.adjust]=Number(x.value)||0);await persist();render();return}
+    if(e.target.closest("[data-save-ban]")){const r=state.rounds[state.activeRound];r.banWinnerId=document.getElementById("banPlayer").value||null;r.bannedMatchId=document.getElementById("banMatch").value||null;await persist();render();return}
+    if(e.target.closest("[data-add-player]")){if(state.players.length>=MAX_PLAYERS){alert("Massimo 20 partecipanti");return}state.players.push({id:`p${Date.now()}`,name:`Giocatore ${state.players.length+1}`,pin:String(Math.floor(1000+Math.random()*9000))});await persist();render();return}
+    if(e.target.closest("[data-save-players]")){state.players.forEach(p=>{const n=document.querySelector(`[data-name="${p.id}"]`)?.value.trim(),pin=document.querySelector(`[data-pin="${p.id}"]`)?.value.trim();if(n)p.name=n;if(pin)p.pin=pin});await persist();render();return}
+    const delP=e.target.closest("[data-delete-player]");if(delP){const id=delP.dataset.deletePlayer;state.players=state.players.filter(p=>p.id!==id);delete state.scoreAdjustments[id];Object.values(state.rounds).forEach(r=>{delete r.picks[id];if(r.banWinnerId===id)r.banWinnerId=null});if(activePlayerId===id){activePlayerId=null;saveSession()}await persist();render();return}
+    if(e.target.closest("[data-add-match]")){state.rounds[state.activeRound].matches.push({id:`m${Date.now()}`,home:"Casa",away:"Trasferta",time:"Da definire",status:"scheduled",goals:0,cardPoints:0});await persist();render();return}
+    const delM=e.target.closest("[data-delete-match]");if(delM){const i=Number(delM.dataset.deleteMatch),r=state.rounds[state.activeRound],m=r.matches[i];r.matches.splice(i,1);if(r.bannedMatchId===m?.id)r.bannedMatchId=null;await persist();render();return}
+    if(e.target.closest("[data-save-matches]")){const r=state.rounds[state.activeRound];r.matches=Array.from(document.querySelectorAll("[data-match-row]")).map((row,i)=>({id:r.matches[i]?.id||`m${Date.now()}-${i}`,home:row.querySelector("[data-home]").value.trim()||"Casa",away:row.querySelector("[data-away]").value.trim()||"Trasferta",time:row.querySelector("[data-time]").value.trim()||"Da definire",status:row.querySelector("[data-status]").value,goals:Math.max(0,Number(row.querySelector("[data-goals]").value)||0),cardPoints:Math.max(0,Number(row.querySelector("[data-cards]").value)||0)}));await persist();render();return}
+  });
+  async function start(){render();const found=await firebaseRead();if(!found){remoteLoaded=false;updateBadge()}setInterval(async()=>{if(!saving){const before=JSON.stringify(state);await firebaseRead();if(JSON.stringify(state)!==before)render()}},8000)}
+  start();
+})();
+</script>
+</body>
 </html>
