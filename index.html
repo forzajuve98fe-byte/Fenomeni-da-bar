@@ -327,12 +327,35 @@
         color: #fecaca;
       }
 
+      .player-editor-row,
+      .match-editor-row {
+        display: grid;
+        grid-template-columns: 1.4fr 1.4fr 1fr 0.8fr 0.8fr 0.6fr 0.8fr;
+        gap: 8px;
+        align-items: end;
+        background: rgba(148, 163, 184, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 8px;
+        margin-bottom: 8px;
+      }
+
+      .player-editor-row {
+        grid-template-columns: 1.3fr 0.9fr auto;
+      }
+
+      .inline-input {
+        min-width: 0;
+      }
+
       .hidden { display: none !important; }
 
       @media (max-width: 680px) {
         body { padding: 16px 12px 48px; }
         header { padding: 16px 14px; }
         nav.tabs { overflow-x: auto; flex-wrap: nowrap; }
+        .player-editor-row,
+        .match-editor-row { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -361,8 +384,18 @@
     <script>
       (function () {
         const STORAGE_KEY = "fenomeni_da_bar_v1";
+        const SESSION_KEY = "fenomeni_da_bar_session_v1";
         const MAX_PLAYERS = 20;
         const TOTAL_ROUNDS = 10;
+
+        function escapeHtml(value) {
+          return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+        }
 
         function createEmptyRounds() {
           const rounds = {};
@@ -384,16 +417,16 @@
             activeRound: 1,
             firebaseUrl: "",
             players: [
-              { id: "p1", name: "Alex" },
-              { id: "p2", name: "Marco" },
-              { id: "p3", name: "Luca" },
-              { id: "p4", name: "Teo" },
-              { id: "p5", name: "Vale" },
-              { id: "p6", name: "Fede" },
-              { id: "p7", name: "Simò" },
-              { id: "p8", name: "Dany" },
-              { id: "p9", name: "Ricky" },
-              { id: "p10", name: "Giò" }
+              { id: "p1", name: "Alex", pin: "1111" },
+              { id: "p2", name: "Marco", pin: "2222" },
+              { id: "p3", name: "Luca", pin: "3333" },
+              { id: "p4", name: "Teo", pin: "4444" },
+              { id: "p5", name: "Vale", pin: "5555" },
+              { id: "p6", name: "Fede", pin: "6666" },
+              { id: "p7", name: "Simò", pin: "7777" },
+              { id: "p8", name: "Dany", pin: "8888" },
+              { id: "p9", name: "Ricky", pin: "9999" },
+              { id: "p10", name: "Giò", pin: "1010" }
             ],
             rounds: createEmptyRounds()
           };
@@ -440,11 +473,19 @@
             };
           }
 
+          const players = Array.isArray(source.players)
+            ? source.players.map((player, index) => ({
+                id: player.id || `p${index + 1}`,
+                name: player.name || `Giocatore ${index + 1}`,
+                pin: player.pin != null ? String(player.pin) : String(1000 + index + 1)
+              }))
+            : fallback.players;
+
           return {
             adminPin: source.adminPin || "1234",
             activeRound: Math.min(TOTAL_ROUNDS, Math.max(1, Number(source.activeRound) || 1)),
             firebaseUrl: source.firebaseUrl || "",
-            players: Array.isArray(source.players) ? source.players.slice(0, MAX_PLAYERS) : fallback.players,
+            players: players.slice(0, MAX_PLAYERS),
             rounds
           };
         }
@@ -459,13 +500,31 @@
           }
         }
 
+        function loadSession() {
+          try {
+            const saved = localStorage.getItem(SESSION_KEY);
+            if (!saved) return { playerId: null };
+            const parsed = JSON.parse(saved);
+            return parsed && typeof parsed === "object" ? { playerId: parsed.playerId || null } : { playerId: null };
+          } catch (e) {
+            return { playerId: null };
+          }
+        }
+
         let state = loadState();
         let currentTab = "play";
         let adminUnlocked = false;
+        let activePlayerId = loadSession().playerId || null;
 
         function saveLocal() {
           try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          } catch (e) {}
+        }
+
+        function saveSession() {
+          try {
+            localStorage.setItem(SESSION_KEY, JSON.stringify({ playerId: activePlayerId }));
           } catch (e) {}
         }
 
@@ -475,6 +534,10 @@
           const url = (state.firebaseUrl || "").trim();
           badge.classList.toggle("live", !!url);
           badge.textContent = url ? "🔥 Firebase attivo" : "💾 Locale (Browser)";
+        }
+
+        function getPlayerById(playerId) {
+          return state.players.find((player) => player.id === playerId) || null;
         }
 
         function getMatchById(roundNum, matchId) {
@@ -559,46 +622,53 @@
             .sort((a, b) => b.totalPoints - a.totalPoints || b.totalHits - a.totalHits);
         }
 
+        function renderLoginCard() {
+          return `
+            <section class="card">
+              <h2>🔒 Accesso partecipanti</h2>
+              <div class="grid-2">
+                <div>
+                  <label>Giocatore</label>
+                  <select id="participantLoginSelect">
+                    <option value="">Seleziona giocatore</option>
+                    ${state.players.map((player) => `<option value="${player.id}">${escapeHtml(player.name)}</option>`).join("")}
+                  </select>
+                </div>
+                <div>
+                  <label>PIN</label>
+                  <input id="participantLoginPin" type="password" placeholder="Inserisci il tuo PIN" />
+                </div>
+              </div>
+              <div class="row-actions">
+                <button type="button" class="btn primary" data-player-login>Accedi</button>
+              </div>
+            </section>
+          `;
+        }
+
         function renderPlay() {
           const round = state.rounds[state.activeRound] || { picks: {}, matches: [] };
           const bannedMatch = round.bannedMatchId ? getMatchById(state.activeRound, round.bannedMatchId) : null;
+          const loggedPlayer = activePlayerId ? getPlayerById(activePlayerId) : null;
 
-          const playerCards = state.players.map((player) => {
-            const pick = round.picks[player.id] || {};
-            const picksHtml = round.matches.map((match) => {
-              const selected = pick.moreGoals === match.id || pick.lessGoals === match.id || pick.moreCards === match.id;
-              return `<option value="${match.id}" ${selected ? "selected" : ""}>${match.home} vs ${match.away}</option>`;
-            }).join('');
-
+          if (!loggedPlayer) {
             return `
-              <div class="card">
-                <h3>${player.name}</h3>
-                <div class="grid-2">
-                  <div>
-                    <label>Più gol</label>
-                    <select data-player-select="${player.id}" data-field="moreGoals">
-                      <option value="">--</option>
-                      ${round.matches.map((match) => `<option value="${match.id}" ${pick.moreGoals === match.id ? "selected" : ""}>${match.home} vs ${match.away}</option>`).join('')}
-                    </select>
-                  </div>
-                  <div>
-                    <label>Meno gol</label>
-                    <select data-player-select="${player.id}" data-field="lessGoals">
-                      <option value="">--</option>
-                      ${round.matches.map((match) => `<option value="${match.id}" ${pick.lessGoals === match.id ? "selected" : ""}>${match.home} vs ${match.away}</option>`).join('')}
-                    </select>
-                  </div>
-                  <div>
-                    <label>Più cartellini</label>
-                    <select data-player-select="${player.id}" data-field="moreCards">
-                      <option value="">--</option>
-                      ${round.matches.map((match) => `<option value="${match.id}" ${pick.moreCards === match.id ? "selected" : ""}>${match.home} vs ${match.away}</option>`).join('')}
-                    </select>
-                  </div>
+              ${renderLoginCard()}
+              <section class="card">
+                <h2>🎯 Seleziona round</h2>
+                <div class="round-picker">
+                  ${Array.from({ length: TOTAL_ROUNDS }, (_, idx) => idx + 1).map((n) => `
+                    <button type="button" class="round-button ${n === state.activeRound ? 'active' : ''}" data-round-btn="${n}">${n}</button>
+                  `).join('')}
                 </div>
-              </div>
+                <div class="ban-box">
+                  <strong>${bannedMatch ? `Match bannato: ${bannedMatch.home} vs ${bannedMatch.away}` : "Nessun match bannato"}</strong>
+                </div>
+              </section>
             `;
-          }).join('');
+          }
+
+          const pick = round.picks[loggedPlayer.id] || {};
 
           return `
             <section class="card">
@@ -610,18 +680,45 @@
               </div>
               <div class="row-actions">
                 <button type="button" class="btn primary" data-save-picks>Salva schedina</button>
+                <button type="button" class="btn secondary" data-player-logout>Esci</button>
               </div>
             </section>
 
             <section class="card">
               <h2>📌 Round ${state.activeRound}</h2>
+              <div class="muted">Giocatore: <strong>${escapeHtml(loggedPlayer.name)}</strong></div>
               <div class="muted">Deadline: ${round.deadline || "Non impostata"}</div>
               <div class="ban-box">
                 <strong>${bannedMatch ? `Match bannato: ${bannedMatch.home} vs ${bannedMatch.away}` : "Nessun match bannato"}</strong>
               </div>
             </section>
 
-            ${playerCards}
+            <div class="card">
+              <h3>${escapeHtml(loggedPlayer.name)}</h3>
+              <div class="grid-2">
+                <div>
+                  <label>Più gol</label>
+                  <select data-player-select="${loggedPlayer.id}" data-field="moreGoals">
+                    <option value="">--</option>
+                    ${round.matches.map((match) => `<option value="${match.id}" ${pick.moreGoals === match.id ? "selected" : ""}>${escapeHtml(match.home)} vs ${escapeHtml(match.away)}</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label>Meno gol</label>
+                  <select data-player-select="${loggedPlayer.id}" data-field="lessGoals">
+                    <option value="">--</option>
+                    ${round.matches.map((match) => `<option value="${match.id}" ${pick.lessGoals === match.id ? "selected" : ""}>${escapeHtml(match.home)} vs ${escapeHtml(match.away)}</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label>Più cartellini</label>
+                  <select data-player-select="${loggedPlayer.id}" data-field="moreCards">
+                    <option value="">--</option>
+                    ${round.matches.map((match) => `<option value="${match.id}" ${pick.moreCards === match.id ? "selected" : ""}>${escapeHtml(match.home)} vs ${escapeHtml(match.away)}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+            </div>
           `;
         }
 
@@ -632,11 +729,11 @@
               ? round.matches.map((match) => `
                   <div class="match-box">
                     <div class="match-top">
-                      <strong>${match.home} vs ${match.away}</strong>
+                      <strong>${escapeHtml(match.home)} vs ${escapeHtml(match.away)}</strong>
                       <span class="badge ${match.status === "played" ? "green" : "gold"}">${match.status === "played" ? "Giocato" : "Programmato"}</span>
                     </div>
-                    <div class="muted">${match.time}</div>
-                    ${match.status === "played" ? `<div class="muted">Risultato: ${match.home} ${match.goals} - ${match.away} ${match.goals}</div>` : ""}
+                    <div class="muted">${escapeHtml(match.time)}</div>
+                    ${match.status === "played" ? `<div class="muted">Risultato: ${escapeHtml(match.home)} ${match.goals} - ${escapeHtml(match.away)} ${match.goals}</div>` : ""}
                   </div>
                 `).join('')
               : '<div class="muted">Nessuna partita impostata.</div>';
@@ -653,7 +750,7 @@
         function renderStandings() {
           const rowsHtml = getStandings().map(({ player, totalPoints, totalHits, enPleinCount, wins }) => `
             <tr>
-              <td><strong>${player.name}</strong></td>
+              <td><strong>${escapeHtml(player.name)}</strong></td>
               <td>${totalPoints}</td>
               <td>${totalHits}</td>
               <td>${enPleinCount}</td>
@@ -683,8 +780,8 @@
         function renderPlayers() {
           const rows = state.players.map((player) => `
             <tr>
-              <td>${player.name}</td>
-              <td>${player.id}</td>
+              <td>${escapeHtml(player.name)}</td>
+              <td>${escapeHtml(player.id)}</td>
             </tr>
           `).join('');
 
@@ -737,13 +834,60 @@
             `;
           }
 
+          const playerRows = state.players.map((player) => `
+            <div class="player-editor-row" data-player-row="${player.id}">
+              <div class="inline-input">
+                <label>Nome</label>
+                <input type="text" data-player-name-edit="${player.id}" value="${escapeHtml(player.name)}" />
+              </div>
+              <div class="inline-input">
+                <label>PIN</label>
+                <input type="password" data-player-pin-edit="${player.id}" value="${escapeHtml(player.pin)}" />
+              </div>
+              <button type="button" class="btn danger" data-player-delete="${player.id}">Elimina</button>
+            </div>
+          `).join('');
+
+          const roundMatches = (state.rounds[state.activeRound]?.matches || []).map((match, index) => `
+            <div class="match-editor-row" data-match-row="${match.id || index}">
+              <div class="inline-input">
+                <label>Casa</label>
+                <input type="text" data-match-home="${index}" value="${escapeHtml(match.home)}" />
+              </div>
+              <div class="inline-input">
+                <label>Trasferta</label>
+                <input type="text" data-match-away="${index}" value="${escapeHtml(match.away)}" />
+              </div>
+              <div class="inline-input">
+                <label>Orario</label>
+                <input type="text" data-match-time="${index}" value="${escapeHtml(match.time)}" />
+              </div>
+              <div class="inline-input">
+                <label>Status</label>
+                <select data-match-status="${index}">
+                  <option value="scheduled" ${match.status === "scheduled" ? "selected" : ""}>Programmata</option>
+                  <option value="played" ${match.status === "played" ? "selected" : ""}>Giocata</option>
+                </select>
+              </div>
+              <div class="inline-input">
+                <label>Gol</label>
+                <input type="number" min="0" data-match-goals="${index}" value="${Number(match.goals) || 0}" />
+              </div>
+              <div class="inline-input">
+                <label>Cartellini</label>
+                <input type="number" min="0" data-match-cards="${index}" value="${Number(match.cardPoints) || 0}" />
+              </div>
+              <button type="button" class="btn danger" data-match-delete="${index}">Rimuovi</button>
+            </div>
+          `).join('');
+
           return `
             <section class="card">
               <h2>⚙️ Pannello admin</h2>
               <div class="grid-2">
                 <div>
                   <label>Firebase URL</label>
-                  <input id="firebaseUrlInput" type="text" value="${state.firebaseUrl || ""}" placeholder="https://.../fenomeni_da_bar.json" />
+                  <input id="firebaseUrlInput" type="text" value="${escapeHtml(state.firebaseUrl || "")}" placeholder="https://.../fenomeni_da_bar.json" />
                 </div>
                 <div>
                   <label>Round attivo</label>
@@ -755,6 +899,24 @@
               <div class="row-actions">
                 <button type="button" class="btn primary" data-admin-save>Salva impostazioni</button>
                 <button type="button" class="btn secondary" data-admin-reset>Reset locale</button>
+              </div>
+            </section>
+
+            <section class="card">
+              <h2>👥 Gestione partecipanti</h2>
+              ${playerRows || "<div class=\"muted\">Nessun partecipante aggiunto.</div>"}
+              <div class="row-actions">
+                <button type="button" class="btn primary" data-player-add>+ Aggiungi partecipante</button>
+                <button type="button" class="btn secondary" data-admin-save-players>Salva partecipanti</button>
+              </div>
+            </section>
+
+            <section class="card">
+              <h2>⚽ Gestione partite del round ${state.activeRound}</h2>
+              ${roundMatches || "<div class=\"muted\">Nessuna partita nel round.</div>"}
+              <div class="row-actions">
+                <button type="button" class="btn primary" data-match-add>+ Aggiungi partita</button>
+                <button type="button" class="btn secondary" data-admin-save-matches>Salva partite</button>
               </div>
             </section>
           `;
@@ -785,6 +947,15 @@
           }
 
           updateSyncBadge();
+        }
+
+        function createNewPlayer() {
+          const newId = `p${Date.now().toString().slice(-6)}`;
+          state.players.push({
+            id: newId,
+            name: `Giocatore ${state.players.length + 1}`,
+            pin: String(1000 + state.players.length + 1)
+          });
         }
 
         document.addEventListener("click", (event) => {
@@ -838,7 +1009,141 @@
           if (event.target.closest("[data-admin-reset]")) {
             state = getSeedState();
             adminUnlocked = true;
+            activePlayerId = null;
+            saveSession();
             saveLocal();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-player-add]")) {
+            createNewPlayer();
+            saveLocal();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-player-delete]")) {
+            const playerId = event.target.closest("[data-player-delete]").dataset.playerDelete;
+            state.players = state.players.filter((player) => player.id !== playerId);
+            Object.keys(state.rounds).forEach((roundKey) => {
+              const round = state.rounds[Number(roundKey)];
+              if (round && round.picks) {
+                delete round.picks[playerId];
+              }
+            });
+            if (activePlayerId === playerId) {
+              activePlayerId = null;
+              saveSession();
+            }
+            saveLocal();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-admin-save-players]")) {
+            const entries = Array.from(document.querySelectorAll("[data-player-name-edit]"));
+            const nextPlayers = entries.map((input) => {
+              const playerId = input.dataset.playerNameEdit;
+              const nameInput = document.querySelector(`[data-player-name-edit="${playerId}"]`);
+              const pinInput = document.querySelector(`[data-player-pin-edit="${playerId}"]`);
+              const name = (nameInput?.value || "").trim();
+              const pin = (pinInput?.value || "").trim();
+              if (!name) return null;
+              return {
+                id: playerId,
+                name,
+                pin: pin || "0000"
+              };
+            }).filter(Boolean);
+
+            if (!nextPlayers.length) {
+              alert("Devi inserire almeno un nome partecipante.");
+              return;
+            }
+
+            state.players = nextPlayers.slice(0, MAX_PLAYERS);
+            saveLocal();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-match-add]")) {
+            const round = state.rounds[state.activeRound] || { matches: [] };
+            round.matches.push({
+              id: `m${Date.now()}`,
+              home: "Casa",
+              away: "Trasferta",
+              time: "Da definire",
+              status: "scheduled",
+              goals: 0,
+              cardPoints: 0
+            });
+            saveLocal();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-match-delete]")) {
+            const index = Number(event.target.closest("[data-match-delete]").dataset.matchDelete);
+            const round = state.rounds[state.activeRound];
+            if (round && round.matches[index]) {
+              round.matches.splice(index, 1);
+            }
+            saveLocal();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-admin-save-matches]")) {
+            const round = state.rounds[state.activeRound] || { matches: [] };
+            const rows = Array.from(document.querySelectorAll("[data-match-row]"));
+            round.matches = rows.map((row) => {
+              const index = Number(row.dataset.matchRow);
+              const original = round.matches[index] || {};
+              const home = (row.querySelector("[data-match-home]")?.value || "").trim();
+              const away = (row.querySelector("[data-match-away]")?.value || "").trim();
+              const time = (row.querySelector("[data-match-time]")?.value || "").trim();
+              const status = row.querySelector("[data-match-status]")?.value || "scheduled";
+              const goals = Number(row.querySelector("[data-match-goals]")?.value || 0);
+              const cardPoints = Number(row.querySelector("[data-match-cards]")?.value || 0);
+
+              return {
+                id: original.id || `m${Date.now()}-${index}`,
+                home: home || original.home || "Casa",
+                away: away || original.away || "Trasferta",
+                time: time || original.time || "Da definire",
+                status,
+                goals: Number.isFinite(goals) ? goals : 0,
+                cardPoints: Number.isFinite(cardPoints) ? cardPoints : 0
+              };
+            }).filter((match) => match.home || match.away || match.time);
+            saveLocal();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-player-login]")) {
+            const selectedPlayerId = document.getElementById("participantLoginSelect")?.value || "";
+            const pinValue = document.getElementById("participantLoginPin")?.value || "";
+            const player = getPlayerById(selectedPlayerId);
+            if (!player) {
+              alert("Seleziona un partecipante");
+              return;
+            }
+            if (String(player.pin) !== String(pinValue)) {
+              alert("PIN errato");
+              return;
+            }
+            activePlayerId = player.id;
+            saveSession();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-player-logout]")) {
+            activePlayerId = null;
+            saveSession();
             renderApp();
           }
         });
