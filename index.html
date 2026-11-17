@@ -1,824 +1,862 @@
 <!DOCTYPE html>
 <html lang="it">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fenomeni da Bar ⚽</title>
-  <style>
-    :root {
-      --bg: #0b111a;
-      --surface: #131c2a;
-      --surface-2: #1a2638;
-      --border: #28384f;
-      --text: #f1f5f9;
-      --muted: #94a3b8;
-      --accent: #22c55e;
-      --accent-dark: #16a34a;
-      --gold: #f59e0b;
-      --danger: #ef4444;
-      --info: #38bdf8;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fenomeni da Bar ⚽</title>
+    <style>
+      :root {
+        --bg: #0a1017;
+        --bg-2: #111d2d;
+        --surface: #132536;
+        --surface-2: #1b3045;
+        --surface-3: #203a54;
+        --border: rgba(148, 163, 184, 0.28);
+        --text: #edf5ff;
+        --muted: #9db7cf;
+        --accent: #22c55e;
+        --accent-strong: #16a34a;
+        --gold: #fbbf24;
+        --danger: #ef4444;
+        --info: #38bdf8;
+      }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+      * { box-sizing: border-box; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(circle at top, #132238 0%, var(--bg) 55%);
-      color: var(--text);
-      min-height: 100vh;
-      padding-bottom: 48px;
-      line-height: 1.45;
-    }
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: radial-gradient(circle at top, rgba(56, 189, 248, 0.15), transparent 20%),
+                    radial-gradient(circle at right, rgba(34, 197, 94, 0.12), transparent 22%),
+                    var(--bg);
+        color: var(--text);
+      }
 
-    .container {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 16px;
-    }
+      body {
+        padding: 24px 16px 60px;
+      }
 
-    header {
-      background: linear-gradient(135deg, #162a23 0%, var(--surface) 65%);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 14px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
+      .container {
+        max-width: 980px;
+        margin: 0 auto;
+      }
 
-    .brand h1 {
-      font-size: 1.45rem;
-      letter-spacing: -0.02em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+      header {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(19, 37, 54, 1));
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 20px 18px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.2);
+      }
 
-    .brand p {
-      color: var(--muted);
-      font-size: 0.88rem;
-      margin-top: 2px;
-    }
+      .brand h1 {
+        margin: 0;
+        font-size: clamp(1.5rem, 3vw, 2.3rem);
+        letter-spacing: -0.03em;
+      }
 
-    .status-pill {
-      font-size: 0.78rem;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
+      .brand p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
 
-    .status-pill.live {
-      color: #86efac;
-      border-color: rgba(34, 197, 94, 0.45);
-      background: rgba(34, 197, 94, 0.12);
-    }
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.52);
+        color: var(--text);
+        border: 1px solid var(--border);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
 
-    nav.tabs {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 6px;
-      margin-bottom: 16px;
-      scrollbar-width: thin;
-    }
+      .status-pill.live {
+        color: #b9f7d4;
+        border-color: rgba(34, 197, 94, 0.45);
+        background: rgba(34, 197, 94, 0.12);
+      }
 
-    nav.tabs button {
-      background: var(--surface);
-      color: var(--muted);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.15s ease;
-    }
+      nav.tabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 16px 0 18px;
+      }
 
-    nav.tabs button:hover { color: var(--text); border-color: #3d5270; }
-    nav.tabs button.active {
-      background: var(--accent);
-      color: #052e16;
-      border-color: var(--accent);
-    }
+      nav.tabs button {
+        border: 1px solid var(--border);
+        background: rgba(19, 37, 54, 0.9);
+        color: var(--muted);
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
 
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 14px;
-    }
+      nav.tabs button:hover {
+        border-color: rgba(56, 189, 248, 0.4);
+        color: var(--text);
+      }
 
-    .card h2 {
-      font-size: 1.1rem;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+      nav.tabs button.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        color: #052e16;
+        border-color: transparent;
+      }
 
-    .card h3 {
-      font-size: 0.98rem;
-      margin: 14px 0 8px;
-      color: var(--info);
-    }
+      .card {
+        background: linear-gradient(180deg, rgba(19, 37, 54, 0.96), rgba(17, 29, 45, 0.9));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 10px 26px rgba(0,0,0,0.14);
+      }
 
-    .muted { color: var(--muted); font-size: 0.88rem; }
+      .card h2 {
+        font-size: 1.08rem;
+        margin: 0 0 12px;
+      }
 
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 12px;
-    }
+      .card h3 {
+        font-size: 0.98rem;
+        color: var(--info);
+        margin: 0 0 12px;
+      }
 
-    label {
-      display: block;
-      font-size: 0.84rem;
-      color: var(--muted);
-      margin-bottom: 5px;
-      font-weight: 600;
-    }
+      .muted {
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
 
-    input, select {
-      width: 100%;
-      background: var(--surface-2);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 0.92rem;
-    }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+      }
 
-    input:focus, select:focus { outline: none; border-color: var(--accent); }
+      label {
+        display: block;
+        font-size: 0.79rem;
+        color: var(--muted);
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
 
-    button.btn {
-      background: var(--accent);
-      color: #052e16;
-      border: none;
-      border-radius: 10px;
-      padding: 10px 15px;
-      font-size: 0.9rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.15s ease;
-    }
+      input, select {
+        width: 100%;
+        background: rgba(9, 17, 24, 0.8);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 0.92rem;
+      }
 
-    button.btn:hover { background: var(--accent-dark); color: #fff; }
-    button.btn.secondary {
-      background: var(--surface-2);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    button.btn.secondary:hover { border-color: #4c6487; }
-    button.btn.danger {
-      background: rgba(239, 68, 68, 0.16);
-      color: #fca5a5;
-      border: 1px solid rgba(239, 68, 68, 0.4);
-    }
-    button.btn.danger:hover { background: var(--danger); color: #fff; }
+      input:focus, select:focus {
+        outline: none;
+        border-color: rgba(56, 189, 248, 0.62);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+      }
 
-    .row-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
+      .btn {
+        appearance: none;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.15s ease;
+      }
 
-    .ban-box {
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(239, 68, 68, 0.1));
-      border: 1px solid rgba(245, 158, 11, 0.45);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 14px;
-    }
+      .btn:hover {
+        transform: translateY(-1px);
+        opacity: 0.98;
+      }
 
-    .ban-box strong { color: #fcd34d; }
+      .btn.primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        color: #062b12;
+      }
 
-    .alert {
-      padding: 10px 12px;
-      border-radius: 10px;
-      font-size: 0.88rem;
-      margin-top: 10px;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      color: #bae6fd;
-    }
+      .btn.secondary {
+        background: rgba(148, 163, 184, 0.08);
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
 
-    .alert.ok {
-      background: rgba(34, 197, 94, 0.14);
-      border-color: rgba(34, 197, 94, 0.4);
-      color: #bbf7d0;
-    }
+      .btn.danger {
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        color: #fecaca;
+      }
 
-    .alert.err {
-      background: rgba(239, 68, 68, 0.15);
-      border-color: rgba(239, 68, 68, 0.45);
-      color: #fecaca;
-    }
+      .row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 8px;
-      font-size: 0.9rem;
-    }
+      .round-picker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
 
-    th, td {
-      text-align: left;
-      padding: 10px 8px;
-      border-bottom: 1px solid var(--border);
-    }
+      .round-button {
+        background: rgba(148, 163, 184, 0.08);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-weight: 600;
+      }
 
-    th {
-      color: var(--muted);
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
+      .round-button.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        color: #062b12;
+        border-color: transparent;
+      }
 
-    .badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      color: var(--text);
-    }
+      .match-box {
+        background: rgba(148, 163, 184, 0.06);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 10px;
+      }
 
-    .badge.gold { background: rgba(245, 158, 11, 0.18); border-color: rgba(245, 158, 11, 0.5); color: #fde68a; }
-    .badge.green { background: rgba(34, 197, 94, 0.18); border-color: rgba(34, 197, 94, 0.5); color: #86efac; }
+      .match-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+        flex-wrap: wrap;
+      }
 
-    .match-item {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
-    }
+      .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        border: 1px solid transparent;
+      }
 
-    .match-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 8px;
-    }
+      .badge.gold {
+        background: rgba(251, 191, 36, 0.14);
+        color: #fde68a;
+        border-color: rgba(251, 191, 36, 0.34);
+      }
 
-    .rules-list {
-      padding-left: 18px;
-      display: grid;
-      gap: 8px;
-      font-size: 0.92rem;
-    }
+      .badge.green {
+        background: rgba(34, 197, 94, 0.14);
+        color: #b9f7d4;
+        border-color: rgba(34, 197, 94, 0.34);
+      }
 
-    .hidden { display: none !important; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <div class="brand">
-        <h1>⚽ Fenomeni da Bar</h1>
-        <p id="headerSubtitle">Serie A • 10 Giornate • fino a 20 giocatori</p>
-      </div>
-      <div id="syncBadge" class="status-pill">💾 Locale (Browser)</div>
-    </header>
+      .ban-box {
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.10), rgba(239, 68, 68, 0.08));
+        border: 1px solid rgba(251, 191, 36, 0.35);
+        border-radius: 12px;
+        padding: 12px;
+        margin-top: 4px;
+      }
 
-    <nav class="tabs" role="tablist">
-      <button type="button" class="active" data-tab="play">🎯 Gioca & BAN</button>
-      <button type="button" data-tab="calendar">📅 Calendario</button>
-      <button type="button" data-tab="standings">🏆 Classifica</button>
-      <button type="button" data-tab="players">👥 Partecipanti</button>
-      <button type="button" data-tab="rules">📜 Regolamento</button>
-      <button type="button" data-tab="admin">⚙️ Admin</button>
-    </nav>
+      .ban-box strong { color: #fedd7a; }
 
-    <main id="appContent"></main>
-  </div>
+      .rules-list {
+        margin: 0;
+        padding-left: 18px;
+        display: grid;
+        gap: 8px;
+        color: var(--text);
+      }
 
-  <script>
-    (function () {
-      const STORAGE_KEY = 'fenomeni_da_bar_v1';
-      const MAX_PLAYERS = 20;
-      const TOTAL_ROUNDS = 10;
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
 
-      function makeRounds() {
-        const rounds = {};
-        for (let i = 1; i <= TOTAL_ROUNDS; i++) {
-          rounds[i] = {
-            deadline: '',
-            matches: [],
-            picks: {},
-            banWinnerId: null,
-            bannedMatchId: null
+      th, td {
+        text-align: left;
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .alert {
+        padding: 10px 12px;
+        border-radius: 10px;
+        margin-top: 10px;
+        font-size: 0.88rem;
+      }
+
+      .alert.ok {
+        background: rgba(34, 197, 94, 0.12);
+        border: 1px solid rgba(34, 197, 94, 0.35);
+        color: #bbf7d0;
+      }
+
+      .alert.err {
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        color: #fecaca;
+      }
+
+      .hidden { display: none !important; }
+
+      @media (max-width: 680px) {
+        body { padding: 16px 12px 48px; }
+        header { padding: 16px 14px; }
+        nav.tabs { overflow-x: auto; flex-wrap: nowrap; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="brand">
+          <h1>⚽ Fenomeni da Bar</h1>
+          <p id="headerSubtitle">Serie A • 10 Giornate • Fino a 20 Giocatori</p>
+        </div>
+        <div id="syncBadge" class="status-pill">💾 Locale (Browser)</div>
+      </header>
+
+      <nav class="tabs" role="tablist">
+        <button type="button" class="active" data-tab="play">🎯 Gioca & BAN</button>
+        <button type="button" data-tab="calendar">📅 Calendario</button>
+        <button type="button" data-tab="standings">🏆 Classifica</button>
+        <button type="button" data-tab="players">👥 Partecipanti</button>
+        <button type="button" data-tab="rules">📜 Regolamento</button>
+        <button type="button" data-tab="admin">⚙️ Admin</button>
+      </nav>
+
+      <main id="appContent"></main>
+    </div>
+
+    <script>
+      (function () {
+        const STORAGE_KEY = "fenomeni_da_bar_v1";
+        const MAX_PLAYERS = 20;
+        const TOTAL_ROUNDS = 10;
+
+        function createEmptyRounds() {
+          const rounds = {};
+          for (let i = 1; i <= TOTAL_ROUNDS; i++) {
+            rounds[i] = {
+              deadline: "",
+              matches: [],
+              picks: {},
+              banWinnerId: null,
+              bannedMatchId: null
+            };
+          }
+          return rounds;
+        }
+
+        function getSeedState() {
+          const state = {
+            adminPin: "1234",
+            activeRound: 1,
+            firebaseUrl: "",
+            players: [
+              { id: "p1", name: "Alex" },
+              { id: "p2", name: "Marco" },
+              { id: "p3", name: "Luca" },
+              { id: "p4", name: "Teo" },
+              { id: "p5", name: "Vale" },
+              { id: "p6", name: "Fede" },
+              { id: "p7", name: "Simò" },
+              { id: "p8", name: "Dany" },
+              { id: "p9", name: "Ricky" },
+              { id: "p10", name: "Giò" }
+            ],
+            rounds: createEmptyRounds()
+          };
+
+          state.rounds[1].deadline = "2026-11-20T20:45";
+          state.rounds[1].matches = [
+            { id: "m101", home: "Inter", away: "Atalanta", time: "Ven 20:45", status: "played", goals: 4, cardPoints: 5 },
+            { id: "m102", home: "Venezia", away: "Roma", time: "Sab 15:00", status: "played", goals: 1, cardPoints: 3 },
+            { id: "m103", home: "Bologna", away: "Parma", time: "Sab 18:00", status: "played", goals: 2, cardPoints: 7 },
+            { id: "m104", home: "Milan", away: "Juventus", time: "Sab 20:45", status: "played", goals: 2, cardPoints: 6 }
+          ];
+          state.rounds[1].picks = {
+            p1: { moreGoals: "m101", lessGoals: "m102", moreCards: "m103" },
+            p2: { moreGoals: "m101", lessGoals: "m102", moreCards: "m104" },
+            p3: { moreGoals: "m103", lessGoals: "m102", moreCards: "m103" }
+          };
+
+          state.rounds[2].deadline = "2026-11-27T20:45";
+          state.rounds[2].matches = [
+            { id: "m201", home: "Napoli", away: "Lazio", time: "Ven 20:45", status: "scheduled", goals: 0, cardPoints: 0 },
+            { id: "m202", home: "Fiorentina", away: "Como", time: "Sab 15:00", status: "scheduled", goals: 0, cardPoints: 0 },
+            { id: "m203", home: "Torino", away: "Genoa", time: "Sab 18:00", status: "scheduled", goals: 0, cardPoints: 0 },
+            { id: "m204", home: "Udinese", away: "Cagliari", time: "Dom 12:30", status: "scheduled", goals: 0, cardPoints: 0 }
+          ];
+          state.rounds[2].banWinnerId = "p1";
+          state.rounds[2].bannedMatchId = "m201";
+
+          return state;
+        }
+
+        function normalizeState(raw) {
+          const fallback = getSeedState();
+          const source = raw && typeof raw === "object" ? raw : fallback;
+          const rounds = {};
+
+          for (let i = 1; i <= TOTAL_ROUNDS; i++) {
+            const roundSource = (source.rounds && source.rounds[i]) || {};
+            rounds[i] = {
+              deadline: roundSource.deadline || "",
+              matches: Array.isArray(roundSource.matches) ? roundSource.matches : [],
+              picks: roundSource.picks && typeof roundSource.picks === "object" ? roundSource.picks : {},
+              banWinnerId: roundSource.banWinnerId || null,
+              bannedMatchId: roundSource.bannedMatchId || null
+            };
+          }
+
+          return {
+            adminPin: source.adminPin || "1234",
+            activeRound: Math.min(TOTAL_ROUNDS, Math.max(1, Number(source.activeRound) || 1)),
+            firebaseUrl: source.firebaseUrl || "",
+            players: Array.isArray(source.players) ? source.players.slice(0, MAX_PLAYERS) : fallback.players,
+            rounds
           };
         }
-        return rounds;
-      }
 
-      function createSeedState() {
-        const state = {
-          adminPin: '1234',
-          activeRound: 1,
-          firebaseUrl: '',
-          players: [
-            { id: 'p1', name: 'Alex', pin: '' },
-            { id: 'p2', name: 'Marco', pin: '' },
-            { id: 'p3', name: 'Luca', pin: '' },
-            { id: 'p4', name: 'Teo', pin: '' },
-            { id: 'p5', name: 'Vale', pin: '' },
-            { id: 'p6', name: 'Fede', pin: '' },
-            { id: 'p7', name: 'Simò', pin: '' },
-            { id: 'p8', name: 'Dany', pin: '' },
-            { id: 'p9', name: 'Ricky', pin: '' },
-            { id: 'p10', name: 'Giò', pin: '' }
-          ],
-          rounds: makeRounds()
-        };
+        function loadState() {
+          try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return getSeedState();
+            return normalizeState(JSON.parse(saved));
+          } catch (e) {
+            return getSeedState();
+          }
+        }
 
-        state.rounds[1].deadline = '2026-11-20T20:45';
-        state.rounds[1].matches = [
-          { id: 'm101', home: 'Inter', away: 'Atalanta', time: 'Ven 20:45', status: 'played', goals: 4, cardPoints: 5 },
-          { id: 'm102', home: 'Venezia', away: 'Roma', time: 'Sab 15:00', status: 'played', goals: 1, cardPoints: 3 },
-          { id: 'm103', home: 'Bologna', away: 'Parma', time: 'Sab 18:00', status: 'played', goals: 2, cardPoints: 7 },
-          { id: 'm104', home: 'Milan', away: 'Juventus', time: 'Sab 20:45', status: 'played', goals: 2, cardPoints: 6 }
-        ];
+        let state = loadState();
+        let currentTab = "play";
+        let adminUnlocked = false;
 
-        state.rounds[1].picks = {
-          p1: { moreGoals: 'm101', lessGoals: 'm102', moreCards: 'm103', submittedAt: '2026-11-20T18:10' },
-          p2: { moreGoals: 'm101', lessGoals: 'm102', moreCards: 'm104', submittedAt: '2026-11-20T19:00' },
-          p3: { moreGoals: 'm103', lessGoals: 'm102', moreCards: 'm103', submittedAt: '2026-11-20T19:30' }
-        };
+        function saveLocal() {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          } catch (e) {}
+        }
 
-        state.rounds[2].deadline = '2026-11-27T20:45';
-        state.rounds[2].matches = [
-          { id: 'm201', home: 'Napoli', away: 'Lazio', time: 'Ven 20:45', status: 'scheduled', goals: 0, cardPoints: 0 },
-          { id: 'm202', home: 'Fiorentina', away: 'Como', time: 'Sab 15:00', status: 'scheduled', goals: 0, cardPoints: 0 },
-          { id: 'm203', home: 'Torino', away: 'Genoa', time: 'Sab 18:00', status: 'scheduled', goals: 0, cardPoints: 0 },
-          { id: 'm204', home: 'Udinese', away: 'Cagliari', time: 'Dom 12:30', status: 'scheduled', goals: 0, cardPoints: 0 }
-        ];
-        state.rounds[2].banWinnerId = 'p1';
-        state.rounds[2].bannedMatchId = 'm201';
+        function updateSyncBadge() {
+          const badge = document.getElementById("syncBadge");
+          if (!badge) return;
+          const url = (state.firebaseUrl || "").trim();
+          badge.classList.toggle("live", !!url);
+          badge.textContent = url ? "🔥 Firebase attivo" : "💾 Locale (Browser)";
+        }
 
-        return state;
-      }
+        function getMatchById(roundNum, matchId) {
+          const round = state.rounds[roundNum] || { matches: [] };
+          return (round.matches || []).find((match) => match.id === matchId) || null;
+        }
 
-      function normalizeState(raw) {
-        const base = createSeedState();
-        const state = raw && typeof raw === 'object' ? raw : base;
-        const rounds = {};
+        function getCategoryWinners(roundNum) {
+          const matches = (state.rounds[roundNum]?.matches || []).filter((match) => match.status === "played");
+          if (!matches.length) {
+            return { moreGoals: [], lessGoals: [], moreCards: [], hasPlayedMatches: false };
+          }
 
-        for (let i = 1; i <= TOTAL_ROUNDS; i++) {
-          const src = (state.rounds && state.rounds[i]) || {};
-          rounds[i] = {
-            deadline: src.deadline || '',
-            matches: Array.isArray(src.matches) ? src.matches : [],
-            picks: src.picks && typeof src.picks === 'object' ? src.picks : {},
-            banWinnerId: src.banWinnerId || null,
-            bannedMatchId: src.bannedMatchId || null
+          const maxGoals = Math.max(...matches.map((match) => Number(match.goals) || 0));
+          const minGoals = Math.min(...matches.map((match) => Number(match.goals) || 0));
+          const maxCards = Math.max(...matches.map((match) => Number(match.cardPoints) || 0));
+
+          return {
+            moreGoals: matches.filter((match) => (Number(match.goals) || 0) === maxGoals).map((match) => match.id),
+            lessGoals: matches.filter((match) => (Number(match.goals) || 0) === minGoals).map((match) => match.id),
+            moreCards: matches.filter((match) => (Number(match.cardPoints) || 0) === maxCards).map((match) => match.id),
+            hasPlayedMatches: true
           };
         }
 
-        return {
-          adminPin: state.adminPin || '1234',
-          activeRound: Math.min(TOTAL_ROUNDS, Math.max(1, Number(state.activeRound) || 1)),
-          firebaseUrl: state.firebaseUrl || '',
-          players: Array.isArray(state.players) ? state.players.slice(0, MAX_PLAYERS) : base.players,
-          rounds
-        };
-      }
+        function evaluatePlayerRound(roundNum, playerId) {
+          const pick = state.rounds[roundNum]?.picks?.[playerId];
+          if (!pick) return { hits: 0, bonus: 0, total: 0, enPlein: false, hasPick: false };
 
-      function loadState() {
-        try {
-          const saved = localStorage.getItem(STORAGE_KEY);
-          if (!saved) return createSeedState();
-          return normalizeState(JSON.parse(saved));
-        } catch (e) {
-          return createSeedState();
-        }
-      }
+          const winners = getCategoryWinners(roundNum);
+          if (!winners.hasPlayedMatches) {
+            return { hits: 0, bonus: 0, total: 0, enPlein: false, hasPick: true, pending: true };
+          }
 
-      let state = loadState();
-      let currentTab = 'play';
-      let adminUnlocked = false;
-      let selectedPlayerId = state.players[0]?.id || null;
+          let hits = 0;
+          const checks = [
+            { key: "moreGoals", arr: winners.moreGoals },
+            { key: "lessGoals", arr: winners.lessGoals },
+            { key: "moreCards", arr: winners.moreCards }
+          ];
 
-      function saveLocal() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      }
+          checks.forEach(({ key, arr }) => {
+            const chosenId = pick[key];
+            const match = getMatchById(roundNum, chosenId);
+            if (match && match.status === "played" && arr.includes(chosenId)) {
+              hits += 1;
+            }
+          });
 
-      function updateSyncBadge() {
-        const badge = document.getElementById('syncBadge');
-        if (!badge) return;
-        const hasFirebase = !!(state.firebaseUrl || '').trim();
-        badge.classList.toggle('live', hasFirebase);
-        badge.textContent = hasFirebase ? '🔥 Firebase attivo' : '💾 Locale (Browser)';
-      }
-
-      function getPlayerById(id) {
-        return state.players.find(p => p.id === id) || null;
-      }
-
-      function getRoundMatches(roundNum) {
-        return state.rounds[roundNum]?.matches || [];
-      }
-
-      function getMatchById(roundNum, matchId) {
-        return (state.rounds[roundNum]?.matches || []).find(m => m.id === matchId) || null;
-      }
-
-      function getCategoryWinners(roundNum) {
-        const matches = getRoundMatches(roundNum).filter(m => m.status === 'played');
-        if (!matches.length) {
-          return { moreGoals: [], lessGoals: [], moreCards: [], hasPlayedMatches: false };
+          const enPlein = hits === 3;
+          const bonus = enPlein ? 1 : 0;
+          return { hits, bonus, total: hits + bonus, enPlein, hasPick: true, pending: false };
         }
 
-        const maxGoals = Math.max(...matches.map(m => Number(m.goals) || 0));
-        const minGoals = Math.min(...matches.map(m => Number(m.goals) || 0));
-        const maxCards = Math.max(...matches.map(m => Number(m.cardPoints) || 0));
+        function getStandings() {
+          return state.players
+            .map((player) => {
+              let totalPoints = 0;
+              let totalHits = 0;
+              let enPleinCount = 0;
+              let wins = 0;
 
-        return {
-          moreGoals: matches.filter(m => (Number(m.goals) || 0) === maxGoals).map(m => m.id),
-          lessGoals: matches.filter(m => (Number(m.goals) || 0) === minGoals).map(m => m.id),
-          moreCards: matches.filter(m => (Number(m.cardPoints) || 0) === maxCards).map(m => m.id),
-          hasPlayedMatches: true
-        };
-      }
+              for (let roundNum = 1; roundNum <= TOTAL_ROUNDS; roundNum++) {
+                const result = evaluatePlayerRound(roundNum, player.id);
+                totalPoints += result.total;
+                totalHits += result.hits;
+                if (result.enPlein) enPleinCount += 1;
 
-      function evaluatePlayerRound(roundNum, playerId) {
-        const round = state.rounds[roundNum];
-        const pick = round?.picks?.[playerId];
-        if (!pick) return { hits: 0, bonus: 0, total: 0, enPlein: false, hasPick: false };
+                const scores = state.players.map((p) => ({
+                  id: p.id,
+                  score: evaluatePlayerRound(roundNum, p.id).total
+                }));
 
-        const winners = getCategoryWinners(roundNum);
-        if (!winners.hasPlayedMatches) {
-          return { hits: 0, bonus: 0, total: 0, enPlein: false, hasPick: true, pending: true };
+                const maxScore = Math.max(...scores.map((entry) => entry.score));
+                if (maxScore > 0 && scores.find((entry) => entry.id === player.id)?.score === maxScore) {
+                  wins += 1;
+                }
+              }
+
+              return { player, totalPoints, totalHits, enPleinCount, wins };
+            })
+            .sort((a, b) => b.totalPoints - a.totalPoints || b.totalHits - a.totalHits);
         }
 
-        let hits = 0;
-        const checks = [
-          { key: 'moreGoals', arr: winners.moreGoals },
-          { key: 'lessGoals', arr: winners.lessGoals },
-          { key: 'moreCards', arr: winners.moreCards }
-        ];
+        function renderPlay() {
+          const round = state.rounds[state.activeRound] || { picks: {}, matches: [] };
+          const bannedMatch = round.bannedMatchId ? getMatchById(state.activeRound, round.bannedMatchId) : null;
 
-        checks.forEach(({ key, arr }) => {
-          const chosenId = pick[key];
-          const match = getMatchById(roundNum, chosenId);
-          if (match && match.status === 'played' && arr.includes(chosenId)) hits += 1;
-        });
-
-        const enPlein = hits === 3;
-        const bonus = enPlein ? 1 : 0;
-
-        return { hits, bonus, total: hits + bonus, enPlein, hasPick: true, pending: false };
-      }
-
-      function renderHeaderSubtitle() {
-        const subtitle = document.getElementById('headerSubtitle');
-        if (!subtitle) return;
-        subtitle.textContent = `Serie A • Round ${state.activeRound} • ${state.players.length} partecipanti`;
-      }
-
-      function renderTabButtons() {
-        document.querySelectorAll('[data-tab]').forEach(btn => {
-          btn.classList.toggle('active', btn.dataset.tab === currentTab);
-        });
-      }
-
-      function renderPlay() {
-        const round = state.rounds[state.activeRound];
-        const roundOptions = Array.from({ length: TOTAL_ROUNDS }, (_, i) => i + 1)
-          .map(n => `<button type="button" class="btn secondary" data-round-btn="${n}" style="margin:4px 4px 4px 0; ${n === state.activeRound ? 'background:#22c55e;color:#052e16;border-color:#22c55e;' : ''}">${n}</button>`)
-          .join('');
-
-        let picksHtml = '';
-        state.players.forEach(player => {
-          const pick = round?.picks?.[player.id] || {};
-          const playerMatches = round?.matches || [];
-
-          picksHtml += `
-            <div class="card">
-              <h3>${player.name}</h3>
-              <div class="grid-2">
-                <div>
-                  <label>Più gol</label>
-                  <select data-player-select="${player.id}" data-field="moreGoals">
-                    <option value="">--</option>
-                    ${playerMatches.map(m => `<option value="${m.id}" ${pick.moreGoals === m.id ? 'selected' : ''}>${m.home} vs ${m.away}</option>`).join('')}
-                  </select>
-                </div>
-                <div>
-                  <label>Meno gol</label>
-                  <select data-player-select="${player.id}" data-field="lessGoals">
-                    <option value="">--</option>
-                    ${playerMatches.map(m => `<option value="${m.id}" ${pick.lessGoals === m.id ? 'selected' : ''}>${m.home} vs ${m.away}</option>`).join('')}
-                  </select>
-                </div>
-                <div>
-                  <label>Più cartellini</label>
-                  <select data-player-select="${player.id}" data-field="moreCards">
-                    <option value="">--</option>
-                    ${playerMatches.map(m => `<option value="${m.id}" ${pick.moreCards === m.id ? 'selected' : ''}>${m.home} vs ${m.away}</option>`).join('')}
-                  </select>
-                </div>
-                <div>
-                  <label>Stato</label>
-                  <div class="badge ${pick.moreGoals || pick.lessGoals || pick.moreCards ? 'green' : ''}">${pick.moreGoals || pick.lessGoals || pick.moreCards ? 'Puntata salvata' : 'Da compilare'}</div>
-                </div>
-              </div>
-            </div>
-          `;
-        });
-
-        const banned = round?.bannedMatchId ? (getMatchById(state.activeRound, round.bannedMatchId) || null) : null;
-
-        return `
-          <div class="card">
-            <h2>🎯 Seleziona round</h2>
-            <div>${roundOptions}</div>
-          </div>
-
-          <div class="card">
-            <h2>📌 Round ${state.activeRound}</h2>
-            <div class="muted">Deadline: ${round.deadline || 'Non impostata'}</div>
-            ${banned ? `<div class="ban-box"><strong>Match bannato:</strong> ${banned.home} vs ${banned.away}</div>` : '<div class="ban-box"><strong>Ban:</strong> nessun match escluso per ora.</div>'}
-          </div>
-
-          <div class="card">
-            <h2>🧩 Schedina</h2>
-            ${picksHtml}
-            <div class="row-actions">
-              <button type="button" class="btn" data-save-picks>Salva schedina</button>
-            </div>
-          </div>
-        `;
-      }
-
-      function renderCalendar() {
-        const html = Array.from({ length: TOTAL_ROUNDS }, (_, i) => i + 1)
-          .map(n => {
-            const r = state.rounds[n] || { matches: [] };
-            const matchesHtml = (r.matches.length ? r.matches.map(m => `
-              <div class="match-item">
-                <div class="match-top">
-                  <strong>${m.home} vs ${m.away}</strong>
-                  <span class="badge ${m.status === 'played' ? 'green' : 'gold'}">${m.status === 'played' ? 'Giocato' : 'Programmato'}</span>
-                </div>
-                <div class="muted">${m.time}</div>
-                ${m.status === 'played' ? `<div class="muted">Risultato: ${m.home} ${m.goals} - ${m.away} ${m.goals}</div>` : ''}
-              </div>
-            `).join('') : '<div class="muted">Nessuna partita impostata.</div>');
+          const playerCards = state.players.map((player) => {
+            const pick = round.picks[player.id] || {};
+            const picksHtml = round.matches.map((match) => {
+              const selected = pick.moreGoals === match.id || pick.lessGoals === match.id || pick.moreCards === match.id;
+              return `<option value="${match.id}" ${selected ? "selected" : ""}>${match.home} vs ${match.away}</option>`;
+            }).join('');
 
             return `
               <div class="card">
-                <h2>📅 Round ${n}</h2>
-                ${matchesHtml}
+                <h3>${player.name}</h3>
+                <div class="grid-2">
+                  <div>
+                    <label>Più gol</label>
+                    <select data-player-select="${player.id}" data-field="moreGoals">
+                      <option value="">--</option>
+                      ${round.matches.map((match) => `<option value="${match.id}" ${pick.moreGoals === match.id ? "selected" : ""}>${match.home} vs ${match.away}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label>Meno gol</label>
+                    <select data-player-select="${player.id}" data-field="lessGoals">
+                      <option value="">--</option>
+                      ${round.matches.map((match) => `<option value="${match.id}" ${pick.lessGoals === match.id ? "selected" : ""}>${match.home} vs ${match.away}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label>Più cartellini</label>
+                    <select data-player-select="${player.id}" data-field="moreCards">
+                      <option value="">--</option>
+                      ${round.matches.map((match) => `<option value="${match.id}" ${pick.moreCards === match.id ? "selected" : ""}>${match.home} vs ${match.away}</option>`).join('')}
+                    </select>
+                  </div>
+                </div>
               </div>
             `;
           }).join('');
 
-        return html;
-      }
+          return `
+            <section class="card">
+              <h2>🎯 Seleziona round</h2>
+              <div class="round-picker">
+                ${Array.from({ length: TOTAL_ROUNDS }, (_, idx) => idx + 1).map((n) => `
+                  <button type="button" class="round-button ${n === state.activeRound ? 'active' : ''}" data-round-btn="${n}">${n}</button>
+                `).join('')}
+              </div>
+              <div class="row-actions">
+                <button type="button" class="btn primary" data-save-picks>Salva schedina</button>
+              </div>
+            </section>
 
-      function renderStandings() {
-        const rows = state.players.map(player => {
-          let total = 0;
-          let hits = 0;
-          let enPlein = 0;
-          let wins = 0;
+            <section class="card">
+              <h2>📌 Round ${state.activeRound}</h2>
+              <div class="muted">Deadline: ${round.deadline || "Non impostata"}</div>
+              <div class="ban-box">
+                <strong>${bannedMatch ? `Match bannato: ${bannedMatch.home} vs ${bannedMatch.away}` : "Nessun match bannato"}</strong>
+              </div>
+            </section>
 
-          for (let roundNum = 1; roundNum <= TOTAL_ROUNDS; roundNum++) {
-            const ev = evaluatePlayerRound(roundNum, player.id);
-            total += ev.total;
-            hits += ev.hits;
-            if (ev.enPlein) enPlein += 1;
-            const winners = getCategoryWinners(roundNum);
-            if (winners.hasPlayedMatches) {
-              const top = Math.max(...state.players.map(p => evaluatePlayerRound(roundNum, p.id).total));
-              if (evaluatePlayerRound(roundNum, player.id).total === top && top > 0) wins += 1;
-            }
+            ${playerCards}
+          `;
+        }
+
+        function renderCalendar() {
+          return Array.from({ length: TOTAL_ROUNDS }, (_, idx) => idx + 1).map((roundNum) => {
+            const round = state.rounds[roundNum] || { matches: [] };
+            const matchesHtml = round.matches.length
+              ? round.matches.map((match) => `
+                  <div class="match-box">
+                    <div class="match-top">
+                      <strong>${match.home} vs ${match.away}</strong>
+                      <span class="badge ${match.status === "played" ? "green" : "gold"}">${match.status === "played" ? "Giocato" : "Programmato"}</span>
+                    </div>
+                    <div class="muted">${match.time}</div>
+                    ${match.status === "played" ? `<div class="muted">Risultato: ${match.home} ${match.goals} - ${match.away} ${match.goals}</div>` : ""}
+                  </div>
+                `).join('')
+              : '<div class="muted">Nessuna partita impostata.</div>';
+
+            return `
+              <section class="card">
+                <h2>📅 Round ${roundNum}</h2>
+                ${matchesHtml}
+              </section>
+            `;
+          }).join('');
+        }
+
+        function renderStandings() {
+          const rowsHtml = getStandings().map(({ player, totalPoints, totalHits, enPleinCount, wins }) => `
+            <tr>
+              <td><strong>${player.name}</strong></td>
+              <td>${totalPoints}</td>
+              <td>${totalHits}</td>
+              <td>${enPleinCount}</td>
+              <td>${wins}</td>
+            </tr>
+          `).join('');
+
+          return `
+            <section class="card">
+              <h2>🏆 Classifica</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Giocatore</th>
+                    <th>Punti</th>
+                    <th>Hit</th>
+                    <th>En plein</th>
+                    <th>Vittorie</th>
+                  </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+              </table>
+            </section>
+          `;
+        }
+
+        function renderPlayers() {
+          const rows = state.players.map((player) => `
+            <tr>
+              <td>${player.name}</td>
+              <td>${player.id}</td>
+            </tr>
+          `).join('');
+
+          return `
+            <section class="card">
+              <h2>👥 Partecipanti</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>ID</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </section>
+          `;
+        }
+
+        function renderRules() {
+          return `
+            <section class="card">
+              <h2>📜 Regolamento</h2>
+              <ul class="rules-list">
+                <li>Ogni giocatore sceglie 3 partite per categoria: più gol, meno gol, più cartellini.</li>
+                <li>Per ogni scelta corretta si ottiene 1 punto; un en plein (3/3) vale +1 bonus.</li>
+                <li>Il round si chiude con la deadline del calendario.</li>
+                <li>Il BAN esclude il match successivo dal conteggio del round che segue.</li>
+                <li>La classifica viene aggiornata automaticamente in base alle schedine.</li>
+              </ul>
+            </section>
+          `;
+        }
+
+        function renderAdmin() {
+          if (!adminUnlocked) {
+            return `
+              <section class="card">
+                <h2>🔒 Accesso admin</h2>
+                <div class="grid-2">
+                  <div>
+                    <label>PIN</label>
+                    <input id="adminPinInput" type="password" placeholder="Inserisci PIN" />
+                  </div>
+                </div>
+                <div class="row-actions">
+                  <button type="button" class="btn primary" data-admin-unlock>Accedi</button>
+                </div>
+              </section>
+            `;
           }
 
           return `
-            <tr>
-              <td><strong>${player.name}</strong></td>
-              <td>${total}</td>
-              <td>${hits}</td>
-              <td>${enPlein}</td>
-              <td>${wins}</td>
-            </tr>
+            <section class="card">
+              <h2>⚙️ Pannello admin</h2>
+              <div class="grid-2">
+                <div>
+                  <label>Firebase URL</label>
+                  <input id="firebaseUrlInput" type="text" value="${state.firebaseUrl || ""}" placeholder="https://.../fenomeni_da_bar.json" />
+                </div>
+                <div>
+                  <label>Round attivo</label>
+                  <select id="activeRoundInput">
+                    ${Array.from({ length: TOTAL_ROUNDS }, (_, idx) => idx + 1).map((n) => `<option value="${n}" ${n === state.activeRound ? "selected" : ""}>Round ${n}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+              <div class="row-actions">
+                <button type="button" class="btn primary" data-admin-save>Salva impostazioni</button>
+                <button type="button" class="btn secondary" data-admin-reset>Reset locale</button>
+              </div>
+            </section>
           `;
-        }).join('');
-
-        return `
-          <div class="card">
-            <h2>🏆 Classifica</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Giocatore</th>
-                  <th>Punti</th>
-                  <th>Hit</th>
-                  <th>En plein</th>
-                  <th>Vittorie</th>
-                </tr>
-              </thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>
-        `;
-      }
-
-      function renderPlayers() {
-        const players = state.players.map(p => `
-          <tr>
-            <td>${p.name}</td>
-            <td>${p.id}</td>
-          </tr>
-        `).join('');
-
-        return `
-          <div class="card">
-            <h2>👥 Partecipanti</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>ID</th>
-                </tr>
-              </thead>
-              <tbody>${players}</tbody>
-            </table>
-          </div>
-        `;
-      }
-
-      function renderRules() {
-        return `
-          <div class="card">
-            <h2>📜 Regolamento</h2>
-            <ul class="rules-list">
-              <li>Ogni giocatore sceglie 3 match per categoria: più gol, meno gol, più cartellini.</li>
-              <li>Per ogni scelta corretta si ottiene 1 punto; un en plein (3/3) vale +1 bonus.</li>
-              <li>Il round si chiude con il deadline definita dal calendario.</li>
-              <li>Il BAN ha effetto sul match non considerato nella successiva partita.</li>
-              <li>La classifica finale viene aggiornata automaticamente in base alle schedine.</li>
-            </ul>
-          </div>
-        `;
-      }
-
-      function renderAdmin() {
-        const unlockHtml = !adminUnlocked ? `
-          <div class="card">
-            <h2>🔒 Accesso admin</h2>
-            <div class="grid-2">
-              <div>
-                <label>PIN</label>
-                <input id="adminPinInput" type="password" placeholder="Inserisci PIN" />
-              </div>
-            </div>
-            <div class="row-actions">
-              <button type="button" class="btn" data-admin-unlock>Accedi</button>
-            </div>
-          </div>
-        ` : `
-          <div class="card">
-            <h2>⚙️ Pannello admin</h2>
-            <div class="grid-2">
-              <div>
-                <label>Firebase URL</label>
-                <input id="firebaseUrlInput" type="text" value="${state.firebaseUrl || ''}" placeholder="https://.../fenomeni_da_bar.json" />
-              </div>
-              <div>
-                <label>Round attivo</label>
-                <select id="activeRoundInput">
-                  ${Array.from({ length: TOTAL_ROUNDS }, (_, i) => i + 1).map(n => `<option value="${n}" ${n === state.activeRound ? 'selected' : ''}>Round ${n}</option>`).join('')}
-                </select>
-              </div>
-            </div>
-            <div class="row-actions">
-              <button type="button" class="btn" data-admin-save>Salva impostazioni</button>
-              <button type="button" class="btn secondary" data-admin-reset>Reset locale</button>
-            </div>
-          </div>
-        `;
-
-        return unlockHtml;
-      }
-
-      function render() {
-        renderHeaderSubtitle();
-        renderTabButtons();
-        const app = document.getElementById('appContent');
-        if (!app) return;
-
-        switch (currentTab) {
-          case 'play': app.innerHTML = renderPlay(); break;
-          case 'calendar': app.innerHTML = renderCalendar(); break;
-          case 'standings': app.innerHTML = renderStandings(); break;
-          case 'players': app.innerHTML = renderPlayers(); break;
-          case 'rules': app.innerHTML = renderRules(); break;
-          case 'admin': app.innerHTML = renderAdmin(); break;
-          default: app.innerHTML = renderPlay(); break;
         }
 
-        updateSyncBadge();
-      }
+        function renderApp() {
+          const app = document.getElementById("appContent");
+          if (!app) return;
 
-      document.addEventListener('click', function (event) {
-        const tabBtn = event.target.closest('[data-tab]');
-        if (tabBtn) {
-          currentTab = tabBtn.dataset.tab;
-          render();
-          return;
-        }
+          const map = {
+            play: renderPlay(),
+            calendar: renderCalendar(),
+            standings: renderStandings(),
+            players: renderPlayers(),
+            rules: renderRules(),
+            admin: renderAdmin()
+          };
 
-        const roundBtn = event.target.closest('[data-round-btn]');
-        if (roundBtn) {
-          state.activeRound = Number(roundBtn.dataset.roundBtn);
-          render();
-          return;
-        }
+          app.innerHTML = map[currentTab] || map.play;
 
-        if (event.target.matches('[data-admin-unlock]')) {
-          const pin = document.getElementById('adminPinInput')?.value || '';
-          if (String(pin) === String(state.adminPin)) {
-            adminUnlocked = true;
-            render();
-          } else {
-            alert('PIN errato');
-          }
-          return;
-        }
-
-        if (event.target.matches('[data-admin-save]')) {
-          const firebaseUrl = document.getElementById('firebaseUrlInput')?.value || '';
-          state.firebaseUrl = firebaseUrl.trim();
-          state.activeRound = Number(document.getElementById('activeRoundInput')?.value || state.activeRound);
-          saveLocal();
-          render();
-          return;
-        }
-
-        if (event.target.matches('[data-admin-reset]')) {
-          state = createSeedState();
-          adminUnlocked = true;
-          saveLocal();
-          render();
-          return;
-        }
-
-        if (event.target.matches('[data-save-picks]')) {
-          const activeRound = state.rounds[state.activeRound];
-          const selects = document.querySelectorAll('[data-player-select]');
-
-          selects.forEach(select => {
-            const playerId = select.dataset.playerSelect;
-            const field = select.dataset.field;
-            if (!activeRound.picks[playerId]) activeRound.picks[playerId] = {};
-            activeRound.picks[playerId][field] = select.value || '';
+          document.querySelectorAll("[data-tab]").forEach((button) => {
+            button.classList.toggle("active", button.dataset.tab === currentTab);
           });
 
-          saveLocal();
-          render();
-        }
-      });
+          const subtitle = document.getElementById("headerSubtitle");
+          if (subtitle) {
+            subtitle.textContent = `Serie A • Round ${state.activeRound} • ${state.players.length} Partecipanti`;
+          }
 
-      document.addEventListener('change', function (event) {
-        const target = event.target;
-        if (target.matches('[data-player-select]')) {
-          const playerId = target.dataset.playerSelect;
-          const field = target.dataset.field;
-          const activeRound = state.rounds[state.activeRound];
-          if (!activeRound.picks[playerId]) activeRound.picks[playerId] = {};
-          activeRound.picks[playerId][field] = target.value || '';
-          saveLocal();
+          updateSyncBadge();
         }
-      });
 
-      document.querySelectorAll('[data-tab]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          currentTab = btn.dataset.tab;
-          render();
+        document.addEventListener("click", (event) => {
+          const tabButton = event.target.closest("[data-tab]");
+          if (tabButton) {
+            currentTab = tabButton.dataset.tab;
+            renderApp();
+            return;
+          }
+
+          const roundButton = event.target.closest("[data-round-btn]");
+          if (roundButton) {
+            state.activeRound = Number(roundButton.dataset.roundBtn);
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-save-picks]")) {
+            const round = state.rounds[state.activeRound];
+            document.querySelectorAll("[data-player-select]").forEach((select) => {
+              const playerId = select.dataset.playerSelect;
+              const field = select.dataset.field;
+              if (!round.picks[playerId]) round.picks[playerId] = {};
+              round.picks[playerId][field] = select.value || "";
+            });
+            saveLocal();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-admin-unlock]")) {
+            const pinValue = document.getElementById("adminPinInput")?.value || "";
+            if (String(pinValue) === String(state.adminPin)) {
+              adminUnlocked = true;
+              renderApp();
+            } else {
+              alert("PIN errato");
+            }
+            return;
+          }
+
+          if (event.target.closest("[data-admin-save]")) {
+            const firebaseUrl = (document.getElementById("firebaseUrlInput")?.value || "").trim();
+            state.firebaseUrl = firebaseUrl;
+            state.activeRound = Number(document.getElementById("activeRoundInput")?.value || state.activeRound);
+            saveLocal();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-admin-reset]")) {
+            state = getSeedState();
+            adminUnlocked = true;
+            saveLocal();
+            renderApp();
+          }
         });
-      });
 
-      render();
-    })();
-  </script>
-</body>
+        document.addEventListener("change", (event) => {
+          const target = event.target;
+          if (target.matches("[data-player-select]")) {
+            const playerId = target.dataset.playerSelect;
+            const field = target.dataset.field;
+            const round = state.rounds[state.activeRound];
+            if (!round.picks[playerId]) round.picks[playerId] = {};
+            round.picks[playerId][field] = target.value || "";
+            saveLocal();
+          }
+        });
+
+        renderApp();
+      })();
+    </script>
+  </body>
 </html>
