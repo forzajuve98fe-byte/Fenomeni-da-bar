@@ -1,52 +1,1237 @@
 <!DOCTYPE html>
 <html lang="it">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fenomeni da Bar ⚽</title>
-<style>
-:root{--bg:#0a1017;--panel:#131d2b;--panel-2:#1b2433;--border:rgba(148,163,184,.28);--text:#edf5ff;--muted:#9db7cf;--green:#22c55e;--red:#ef4444;--gold:#fbbf24;--blue:#38bdf8;--shadow:0 18px 45px rgba(15,23,42,.55)}
-*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(180deg,#0a1017,#101b2a);color:var(--text)}body{padding:24px 16px}a{color:var(--blue);text-decoration:none}.container{max-width:1180px;margin:0 auto}.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:rgba(15,23,42,.65);font-size:12px;color:var(--muted)}.badge.sent{border-color:rgba(34,197,94,.5);color:#a7f3d0;background:rgba(34,197,94,.12)}.badge.failed{border-color:rgba(239,68,68,.5);color:#fca5a5;background:rgba(239,68,68,.12)}header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;background:rgba(19,29,43,.95);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow)}header h1{margin:0;font-size:clamp(1.5rem,2vw,2.5rem)}.muted{color:var(--muted)}nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}nav button,.primary,.secondary,.danger,button{cursor:pointer;border:none;border-radius:12px;padding:10px 14px;font-weight:700;transition:.2s ease}nav button{background:#1a2636;color:var(--text);border:1px solid var(--border)}nav button.active{background:linear-gradient(135deg,#0ea5e9,#2563eb);color:white;border-color:transparent}.card{margin-top:14px;padding:18px;background:rgba(19,29,43,.98);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow)}.card h2{margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.editor,.match{padding:12px;border:1px solid var(--border);background:rgba(15,23,42,.7);border-radius:12px}.editor label,.grid label, .actions label{display:block;font-size:.8rem;margin-bottom:6px;color:var(--muted)}input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#0d1723;color:var(--text);font:inherit}.input-row{display:flex;gap:8px;align-items:center}.rounds{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}.round-button{background:#172334;border:1px solid var(--border);padding:8px 12px;border-radius:12px;color:var(--text)}.round-button.active{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#111827;border-color:transparent}.note{margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);color:#dbeafe}.note.closed{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);color:#fecaca}.status-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}.status-row:last-child{border-bottom:none}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.primary{background:linear-gradient(135deg,#22c55e,#16a34a);color:white}.secondary{background:#1e293b;color:var(--text);border:1px solid var(--border)}.danger{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:10px 8px;border-bottom:1px solid var(--border);text-align:left}th{color:var(--muted);font-size:.85rem;text-transform:uppercase}.match-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.match{margin-top:10px}.match .badge{font-size:.75rem}.rules-section{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}.rules-section h3{margin:0 0 8px}.sr{display:none}.small{font-size:.8rem}.error{color:#fca5a5}
-</style>
-</head>
-<body><div class="container"><header><div><h1>⚽ Fenomeni da Bar</h1><p id="subtitle" class="muted">Serie A • 10 Giornate</p></div><span id="syncBadge" class="badge">💾 Solo questo browser</span></header><nav><button data-tab="play" class="active">🎯 Gioca & BAN</button><button data-tab="calendar">📅 Calendario</button><button data-tab="standings">🏆 Classifica</button><button data-tab="players">👥 Partecipanti</button><button data-tab="rules">📜 Regolamento</button><button data-tab="admin">⚙️ Admin</button></nav><main id="app"></main></div>
-<script>
-(() => {
-const KEY='fenomeni_da_bar_v1',SESSION='fenomeni_da_bar_session_v1',TOTAL=10,MAX=20,DEFAULT_FIREBASE='https://fenomeni-da-bar-default-rtdb.europe-west1.firebasedatabase.app/';
-const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>Array.from(r.querySelectorAll(s)),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const emptyRounds=()=>Object.fromEntries(Array.from({length:TOTAL},(_,i)=>[i+1,{deadline:'',matches:[],picks:{},banWinnerId:null,bannedMatchId:null}]));
-function seed(){const players=[['p1','Alex','1111'],['p2','Marco','2222'],['p3','Luca','3333'],['p4','Teo','4444'],['p5','Vale','5555'],['p6','Fede','6666'],['p7','Simò','7777'],['p8','Dany','8888'],['p9','Ricky','9999'],['p10','Giò','1010']].map(([id,name,pin])=>({id,name,pin,manualPoints:0}));const rounds=emptyRounds();rounds[1].deadline='2026-11-20T20:45';rounds[1].matches=[{id:'m101',home:'Inter',away:'Atalanta',time:'Ven 20:45',status:'played',goals:4,cardPoints:5},{id:'m102',home:'Venezia',away:'Roma',time:'Sab 15:00',status:'played',goals:1,cardPoints:3},{id:'m103',home:'Bologna',away:'Parma',time:'Sab 18:00',status:'played',goals:2,cardPoints:7},{id:'m104',home:'Milan',away:'Juventus',time:'Sab 20:45',status:'played',goals:2,cardPoints:6}];rounds[1].picks={p1:{moreGoals:'m101',lessGoals:'m102',moreCards:'m103',submittedAt:'2026-11-17T00:00:00.000Z'},p2:{moreGoals:'m101',lessGoals:'m102',moreCards:'m104',submittedAt:'2026-11-17T00:00:00.000Z'},p3:{moreGoals:'m103',lessGoals:'m102',moreCards:'m103',submittedAt:'2026-11-17T00:00:00.000Z'}};rounds[2].deadline='2026-11-27T20:45';rounds[2].matches=[{id:'m201',home:'Napoli',away:'Lazio',time:'Ven 20:45',status:'scheduled',goals:0,cardPoints:0},{id:'m202',home:'Fiorentina',away:'Como',time:'Sab 15:00',status:'scheduled',goals:0,cardPoints:0},{id:'m203',home:'Torino',away:'Genoa',time:'Sab 18:00',status:'scheduled',goals:0,cardPoints:0},{id:'m204',home:'Udinese',away:'Cagliari',time:'Dom 12:30',status:'scheduled',goals:0,cardPoints:0}];rounds[2].banWinnerId='p1';rounds[2].bannedMatchId='m201';return{adminPin:'1234',activeRound:1,firebaseUrl:'',players,rounds}};
-function normalize(raw){const d=seed(),s=raw&&typeof raw==='object'?raw:d,rounds={};for(let n=1;n<=TOTAL;n++){const r=s.rounds?.[n]||{};rounds[n]={deadline:r.deadline||'',matches:Array.isArray(r.matches)?r.matches:[],picks:r.picks&&typeof r.picks==='object'?r.picks:{},banWinnerId:r.banWinnerId||null,bannedMatchId:r.bannedMatchId||null}};return{adminPin:String(s.adminPin||'1234'),activeRound:Math.min(TOTAL,Math.max(1,Number(s.activeRound)||1)),firebaseUrl:s.firebaseUrl||'',players:(Array.isArray(s.players)?s.players:d.players).slice(0,MAX).map((p,i)=>({id:p.id||`p${i+1}`,name:p.name||`Giocatore ${i+1}`,pin:String(p.pin??(1000+i+1)),manualPoints:Number(p.manualPoints)||0})),rounds}};
-function load(){try{const x=localStorage.getItem(KEY);return x?normalize(JSON.parse(x)):seed()}catch{return seed()}}
-let state=load(),tab='play',admin=false,playerId=null,syncState='local',pollTimer=null,syncBusy=false,saveTimer=null;try{playerId=JSON.parse(sessionStorage.getItem(SESSION)||'null')}catch{}
-const player=id=>state.players.find(p=>p.id===id),round=n=>state.rounds[n];
-function endpoint(raw){let u;try{u=new URL(String(raw).trim())}catch{throw Error('URL Firebase non valida.')}if(u.protocol!=='https:'||u.search||u.hash)throw Error('Inserisci l’URL HTTPS base del Realtime Database, senza parametri.');let path=u.pathname.replace(/\/+$/,'');if(!path)path='/fenomeni-da-bar';if(!path.endsWith('.json'))path+='.json';u.pathname=path;return u.toString()}
-async function responseJson(res){if(!res.ok)throw Error(`Firebase ha risposto con errore ${res.status}. Verifica URL e regole del database.`);return res.json()}
-function updateBadge(){const b=$('#syncBadge');if(!b)return;b.className='badge '+(syncState==='live'?'sent':syncState==='connecting'?'':'failed');b.textContent=syncState==='live'?'🔥 Firebase condiviso':syncState==='connecting'?'⏳ Sincronizzazione…':syncState==='error'?'⚠️ Errore Firebase':'💾 Solo questo browser'}
-function saveLocal(sync=true){try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}if(sync&&state.firebaseUrl&&syncState==='live'){clearTimeout(saveTimer);saveTimer=setTimeout(()=>pushFirebase().catch(err=>{syncState='error';updateBadge();console.error(err)}),350)}updateBadge()}
-async function pushFirebase(){if(!state.firebaseUrl||syncBusy)throw Error('Firebase non collegato. Il pronostico è salvato solo su questo browser.');syncBusy=true;syncState='connecting';updateBadge();try{await responseJson(await fetch(state.firebaseUrl,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(state),cache:'no-store'}));syncState='live'}finally{syncBusy=false;updateBadge()}}
-async function connectFirebase(raw){const url=endpoint(raw);state.firebaseUrl=url;syncState='connecting';updateBadge();try{const remote=await responseJson(await fetch(url,{cache:'no-store'}));if(remote&&typeof remote==='object'){state=normalize(remote);state.firebaseUrl=url;saveLocal(false);syncState='live';startPolling();render();alert('Firebase collegato: caricati i dati condivisi.')}else{if(!confirm('Il database è vuoto. Vuoi caricare i dati presenti in questo browser?')){state.firebaseUrl='';syncState='local';saveLocal(false);render();return}state.firebaseUrl=url;syncState='local';await pushFirebase();saveLocal(false);startPolling();render();alert('Dati caricati su Firebase e condivisi.')}}catch(err){state.firebaseUrl='';syncState='error';saveLocal(false);throw err}}
-async function pollFirebase(){if(!state.firebaseUrl||syncBusy)return;try{const remote=await responseJson(await fetch(state.firebaseUrl,{cache:'no-store'}));if(remote&&typeof remote==='object'){const url=state.firebaseUrl,next=normalize(remote);next.firebaseUrl=url;if(JSON.stringify(next)!==JSON.stringify(state)){state=next;saveLocal(false);render()}syncState='live';updateBadge()}}catch(err){syncState='error';updateBadge();console.error('Lettura Firebase non riuscita',err)}}
-function startPolling(){clearInterval(pollTimer);if(state.firebaseUrl)pollTimer=setInterval(pollFirebase,4000)}
-function romeTimestamp(v){if(!v)return null;const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);if(!m)return null;const a=m.slice(1).map(Number),wall=Date.UTC(a[0],a[1]-1,a[2],a[3],a[4]);return wall}
-const deadlineClosed=r=>{const t=romeTimestamp(r.deadline);return t!==null&&Date.now()>=t};const deadlineText=v=>{const t=romeTimestamp(v);return t===null?'Nessuna scadenza impostata':new Intl.DateTimeFormat('it-IT',{timeZone:'Europe/Rome',dateStyle:'medium',timeStyle:'short'}).format(new Date(t))};
-function winners(n){const ms=round(n).matches.filter(m=>m.status==='played');if(!ms.length)return{moreGoals:[],lessGoals:[],moreCards:[]};let max=Math.max(...ms.map(m=>+m.goals||0)),min=Math.min(...ms.map(m=>+m.goals||0));const moreGoals=ms.filter(m=>+m.goals===max).map(m=>m.id),lessGoals=ms.filter(m=>+m.goals===min).map(m=>m.id),moreCards=ms.filter(m=>+m.cardPoints===Math.max(...ms.map(m=>+m.cardPoints||0))).map(m=>m.id);return{moreGoals,lessGoals,moreCards}};
-function score(p,n){const r=round(n),pick=r.picks[p.id]||{},w=winners(n);let hits=0;['moreGoals','lessGoals','moreCards'].forEach(k=>{if(w[k].includes(pick[k]))hits++});return hits+(hits===3?1:0)}
-function standings(){return state.players.map(p=>{let base=Number(p.manualPoints)||0,hits=0,perfect=0,winsCount=0;for(let n=1;n<=TOTAL;n++){const s=score(p,n);base+=s;hits+=Math.min(s,3);if(s===4)perfect++;const max=Math.max(...round(n).matches.filter(m=>m.status==='played').map(m=>+m.goals||0));const any=round(n).picks[p.id]||{};if(any.moreGoals&&max&&any.moreGoals===winners(n).moreGoals[0])winsCount++;}
-return {...p,base,perfect,hits,winsCount};}).sort((a,b)=>b.base-a.base||b.perfect-a.perfect||b.hits-a.hits||b.winsCount-a.winsCount||a.name.localeCompare(b.name))}
-function completePick(pick){return !!(pick&&pick.moreGoals&&pick.lessGoals&&pick.moreCards)}
-function sentTime(pick){if(!pick?.submittedAt)return '';try{return new Intl.DateTimeFormat('it-IT',{timeZone:'Europe/Rome',dateStyle:'short',timeStyle:'short'}).format(new Date(pick.submittedAt))}catch{return pick.submittedAt}}
-function login(){return `<section class="card"><h2>🔒 Accesso partecipanti</h2><div class="grid"><div><label>Giocatore</label><select id="loginPlayer"><option value="">Seleziona giocatore</option>${state.players.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select></div><div><label>PIN</label><input id="loginPin" type="password" maxlength="4" placeholder="PIN"></div></div><div class="actions"><button class="primary" data-login>Accedi</button></div></section>`}
-function renderPlay(){const r=round(state.activeRound),p=player(playerId),banp=player(r.banWinnerId),banm=r.matches.find(m=>m.id===r.bannedMatchId),closed=deadlineClosed(r),notice=closed?`<div class="note closed">⛔ Pronostici chiusi il ${esc(deadlineText(r.deadline))}.</div>`:r.deadline?`<div class="note">⏳ Pronostici aperti fino al <strong>${esc(deadlineText(r.deadline))}</strong>.</div>`:`<div class="note">Pronostici aperti: l'admin non ha impostato una scadenza.</div>`;if(!p)return `${login()}<section class="card"><h2>Round ${state.activeRound}</h2><div class="rounds">${Array.from({length:TOTAL},(_,i)=>i+1).map(n=>`<button class="round-button ${n===state.activeRound?'active':''}" data-round="${n}">${n}</button>`).join('')}</div>${notice}${banp?`<div class="note">Potere BAN: <strong>${esc(banp.name)}</strong></div>`:''}</section>`;const pick=r.picks[p.id]||{},complete=completePick(pick),confirmed=complete&&!!pick.submittedAt&&syncState==='live',field=(k,l)=>`<div><label>${l}</label><select data-pick="${k}" ${closed?'disabled':''}><option value="">-- scegli --</option>${r.matches.filter(m=>!r.bannedMatchId||m.id!==r.bannedMatchId||p.id===r.banWinnerId).map(m=>`<option value="${esc(m.id)}" ${pick[k]===m.id?'selected':''}>${esc(m.home)} vs ${esc(m.away)}</option>`).join('')}</select></div>`;return `<section class="card"><h2>🎯 Round ${state.activeRound} — ${esc(p.name)}</h2>${notice}<div class="rounds">${Array.from({length:TOTAL},(_,i)=>i+1).map(n=>`<button class="round-button ${n===state.activeRound?'active':''}" data-round="${n}">${n}</button>`).join('')}</div>${closed?'<p class="muted">Puoi visualizzare la schedina, ma non modificarla.</p>':`<div class="grid" style="margin-top:12px">${field('moreGoals','⚽ Più gol')}${field('lessGoals','🔒 Meno gol')}${field('moreCards','🟨 Più cartellini')}</div>`}<div class="actions">${closed?'':`<button class="primary" data-save-pick>Invia / aggiorna pronostici</button>`}<button class="secondary" data-logout>Esci</button></div><div class="note ${confirmed?'':'closed'}">${complete?(confirmed?`✅ Pronostici inviati e confermati su Firebase il ${esc(sentTime(pick))}.`:'⚠️ Pronostici presenti solo in questo browser/non ancora confermati da Firebase.'):'📭 Pronostici non ancora inviati: completa tutte e tre le categorie.'}</div>${banp?`<div class="note">Potere BAN: <strong>${esc(banp.name)}</strong>${banm?` · Match bannato: ${esc(banm.home)} vs ${esc(banm.away)}`:''}</div>`:''}<section class="card"><h2>🔐 Cambia PIN</h2><p class="muted">PIN di 4 lettere e/o cifre.</p><div class="grid"><div><label>PIN attuale</label><input id="currentPlayerPin" type="password" maxlength="4"></div><div><label>Nuovo PIN</label><input id="newPlayerPin" type="password" maxlength="4"></div><div><label>Ripeti nuovo PIN</label><input id="confirmPlayerPin" type="password" maxlength="4"></div></div><div class="actions"><button class="primary" data-change-player-pin>Aggiorna PIN</button></div></section></section>`}
-function renderCalendar(){return Array.from({length:TOTAL},(_,i)=>i+1).map(n=>{const r=round(n),bp=player(r.banWinnerId);return `<section class="card"><h2>📅 Round ${n}</h2><p class="muted">Pronostici ${deadlineClosed(r)?'chiusi':'aperti'} · Scadenza: ${esc(deadlineText(r.deadline))}</p>${bp?`<p class="note">Potere BAN: <strong>${esc(bp.name)}</strong></p>`:''}${r.matches.length?r.matches.map(m=>`<div class="match"><div class="match-top"><strong>${esc(m.home)} vs ${esc(m.away)}</strong><span class="badge ${m.status==='played'?'sent':''}">${m.status==='played'?'Giocata':'Programmata'}</span></div><div class="muted">${esc(m.time)}${m.status==='played'?` · ${+m.goals||0} gol · ${+m.cardPoints||0} punti cartellini`:''}</div></div>`).join(''):'<p class="muted">Nessuna partita.</p>'}</section>`}).join('')}
-function renderStandings(){const rows=standings();return `<section class="card"><h2>🏆 Classifica</h2><table><thead><tr><th>#</th><th>Giocatore</th><th>Punti</th><th>Pronostici corretti</th><th>En plein</th></tr></thead><tbody>${rows.map((p,i)=>`<tr><td>${i+1}</td><td>${esc(p.name)}</td><td>${p.base}</td><td>${p.hits}</td><td>${p.perfect}</td></tr>`).join('')}</tbody></table></section>`}
-function renderPlayers(){return `<section class="card"><h2>👥 Partecipanti</h2><table><thead><tr><th>Nome</th><th>ID</th></tr></thead><tbody>${state.players.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.id)}</td></tr>`).join('')}</tbody></table></section>`}
-function renderRules(){return `<section class="card"><h2>📜 Regolamento Ufficiale — Fenomeni da Bar ⚽</h2><p class="muted">Non basta fare il fenomeno sul divano: servono occhio, nervi saldi e gestione tattica del BAN.</p><div class="rules-section"><h3>1. Obiettivo e durata</h3><p>Il torneo dura 10 giornate, fino a 20 partecipanti. Vince chi totalizza più punti generali.</p></div><div class="rules-section"><h3>2. I tre pronostici</h3><ol><li>⚽ Più gol: partita con più gol totali.</li><li>🔒 Meno gol: partita con meno gol totali.</li><li>🟨 Più cartellini: partita con più punti cartellino.</li></ol><p>Inviare prima del primo anticipo o entro la scadenza impostata dall’admin. Dopo la scadenza non sono modificabili.</p></div><div class="rules-section"><h3>3. Punteggio</h3><p>Ogni categoria corretta vale +1. Indovinando tutte e tre: +1 bonus En Plein (totale 4).</p></div><div class="rules-section"><h3>4. Cartellini</h3><p>Solo calciatori in campo: giallo 1 punto; rosso diretto 2; doppio giallo + rosso 4. Esclusi panchina, staff e dirigenti.</p></div><div class="rules-section"><h3>5. BAN</h3><p>Lo ottiene il vincitore solitario di giornata; può bannare una partita della giornata successiva. Gli altri non possono sceglierla. Se c’è parità al primo posto, nessun BAN.</p></div><div class="rules-section"><h3>6. Parità, rinvii e sospensioni</h3><p>In caso di parità tra partite nella categoria vincente, il punto va a chiunque abbia scelto una partita a pari merito. Partite rinviate/sospese e non completate nei tempi valgono 0.</p></div><div class="rules-section"><h3>7. Parità in classifica</h3><p>Si decide nell’ordine: più En Plein, poi più vittorie di giornata; se persiste, pari merito.</p></div><div class="rules-section"><h3>8. Fair play</h3><p>Gioco ricreativo tra amici: divertitevi e giocate con fair play!</p></div></section>`}
-function statusPanel(){const r=round(state.activeRound);return `<section class="card"><h2>📨 Invio pronostici — Round ${state.activeRound}</h2><p class="muted">Stato letto dai dati condivisi su Firebase. “Inviato” indica una schedina completa salvata sul database.</p>${state.players.map(p=>{const pick=r.picks[p.id],done=completePick(pick),stamp=done&&pick.submittedAt?sentTime(pick):'';return `<div class="status-row"><strong>${esc(p.name)}</strong><span class="badge ${done?'sent':'failed'}">${done?'✅ Inviato':'⏳ Non inviato'}</span><span class="muted">${stamp?`Confermato: ${esc(stamp)}`:done?'Ora non disponibile':''}</span></div>`}).join('')}${syncState!=='live'?'<p class="note closed">Firebase non è collegato: non è possibile verificare gli invii degli altri dispositivi.</p>':''}</section>`}
-function matchEditor(m,i){return `<div class="editor grid" data-match="${i}"><div><label>Casa</label><input data-home value="${esc(m.home)}"></div><div><label>Trasferta</label><input data-away value="${esc(m.away)}"></div><div><label>Orario</label><input data-time value="${esc(m.time)}"></div><div><label>Stato</label><select data-status><option value="scheduled" ${m.status==='scheduled'?'selected':''}>Programmata</option><option value="played" ${m.status==='played'?'selected':''}>Giocata</option></select></div><div><label>Gol</label><input type="number" min="0" data-goals value="${+m.goals||0}"></div><div><label>Cartellini</label><input type="number" min="0" data-cards value="${+m.cardPoints||0}"></div></div>`}
-function renderAdmin(){if(!admin)return `<section class="card"><h2>🔒 Accesso admin</h2><label>PIN admin</label><input id="adminLoginPin" type="password" placeholder="PIN"><div class="actions"><button class="primary" data-admin-login>Accedi</button></div></section>`;const r=round(state.activeRound);return `<section class="card"><h2>⚙️ Impostazioni admin</h2><div class="grid"><div><label>Round attivo</label><select id="adminRound">${Array.from({length:TOTAL},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===state.activeRound?'selected':''}>Round ${n}</option>`).join('')}</select></div><div><label>Nuovo PIN admin</label><input id="newAdminPin" type="password" placeholder="Lascia vuoto per non cambiare"></div><div><label>Scadenza pronostici</label><input id="deadline" type="datetime-local" value="${r.deadline? r.deadline.slice(0,16):''}"></div></div><div class="actions"><button class="primary" data-save-settings>Salva impostazioni</button><button class="secondary" data-save-deadline>Salva scadenza</button><button class="secondary" data-admin-logout>Logout admin</button></div></section><section class="card"><h2>👥 Gestione partecipanti</h2>${state.players.map(p=>`<div class="editor"><div class="grid"><div><label>Nome</label><input data-name="${esc(p.id)}" value="${esc(p.name)}"></div><div><label>PIN</label><input data-pin="${esc(p.id)}" value="${esc(p.pin)}" maxlength="4"></div></div><div class="actions"><button class="danger" data-delete-player="${esc(p.id)}">Elimina</button></div></div>`).join('')}<div class="actions"><button class="primary" data-save-players>Salva partecipanti</button><button class="secondary" data-add-player>Aggiungi giocatore</button></div></section><section class="card"><h2>📅 Partite del round</h2>${r.matches.map((m,i)=>matchEditor(m,i)).join('') || '<p class="muted">Nessuna partita ancora inserita.</p>'}<div class="actions"><button class="secondary" data-add-match>Aggiungi partita</button><button class="primary" data-save-matches>Salva partite</button></div></section><section class="card"><h2>💥 BAN</h2><div class="grid"><div><label>Vincitore BAN</label><select id="banPlayer"><option value="">-- nessuno --</option>${state.players.map(p=>`<option value="${esc(p.id)}" ${r.banWinnerId===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div><div><label>Partita bannata</label><select id="banMatch"><option value="">-- nessuna --</option>${r.matches.map(m=>`<option value="${esc(m.id)}" ${r.bannedMatchId===m.id?'selected':''}>${esc(m.home)} vs ${esc(m.away)}</option>`).join('')}</select></div></div><div class="actions"><button class="primary" data-save-ban>Salva BAN</button></div></section>${statusPanel()}<section class="card"><h2>📊 Punti manuali</h2>${state.players.map(p=>`<div class="editor"><label>${esc(p.name)}</label><input data-manual-points="${esc(p.id)}" type="number" value="${+p.manualPoints||0}"></div>`).join('')}<div class="actions"><button class="primary" data-save-standings>Aggiorna punti manuali</button></div></section><div class="actions"><button class="danger" data-reset>Resetta dati</button></div></section>`}
-function render(){if(playerId&&!player(playerId)){playerId=null;sessionStorage.removeItem(SESSION)}$('#app').innerHTML=({play:renderPlay,calendar:renderCalendar,standings:renderStandings,players:renderPlayers,rules:renderRules,admin:renderAdmin}[tab]||renderPlay)();$$('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));$('#subtitle').textContent=`Serie A • Round ${state.activeRound} • ${state.players.length} Partecipanti`;updateBadge()}
-document.addEventListener('click',async e=>{const t=e.target.closest('[data-tab]');if(t){tab=t.dataset.tab;render();return}const rb=e.target.closest('[data-round]');if(rb){state.activeRound=+rb.dataset.round;saveLocal();render();return};if(e.target.closest('[data-admin-login]')){if($('#adminLoginPin').value===state.adminPin){admin=true;render()}else alert('PIN admin errato');return}if(e.target.closest('[data-admin-logout]')){admin=false;render();return};if(e.target.closest('[data-login]')){const p=player($('#loginPlayer').value);if(p&&p.pin===$('#loginPin').value){playerId=p.id;sessionStorage.setItem(SESSION,JSON.stringify(playerId));render()}else alert('Giocatore o PIN non valido');return}if(e.target.closest('[data-logout]')){playerId=null;sessionStorage.removeItem(SESSION);render();return};if(e.target.closest('[data-firebase-connect]')){const b=e.target.closest('[data-firebase-connect]');b.disabled=true;try{await connectFirebase($('#firebaseUrl').value)}catch(err){alert(err.message);console.error(err)}finally{if(b.isConnected)b.disabled=false}return}if(e.target.closest('[data-firebase-disconnect]')){clearInterval(pollTimer);state.firebaseUrl='';syncState='local';saveLocal(false);render();alert('Firebase disconnesso.');return};if(e.target.closest('[data-change-player-pin]')){const p=player(playerId),current=$('#currentPlayerPin').value,newPin=$('#newPlayerPin').value,confirmPin=$('#confirmPlayerPin').value;if(!p){alert('Accedi prima.');return}if(current!==p.pin){alert('PIN attuale non corretto.');return}if(!/^[A-Za-z0-9]{4}$/.test(newPin)){alert('PIN deve avere 4 lettere e/o cifre.');return}if(newPin!==confirmPin){alert('I PIN non coincidono.');return}p.pin=newPin;saveLocal();if(state.firebaseUrl)try{await pushFirebase()}catch(err){alert('PIN salvato localmente, ma Firebase non ha confermato: '+err.message);return}render();alert('PIN aggiornato.');return};if(e.target.closest('[data-save-pick]')){const p=player(playerId),r=round(state.activeRound);if(!p)return;if(deadlineClosed(r)){render();alert(`Scadenza superata: ${deadlineText(r.deadline)}.`);return}const prev=r.picks[p.id],pick={};$$('[data-pick]').forEach(s=>pick[s.dataset.pick]=s.value);if(!pick.moreGoals||!pick.lessGoals||!pick.moreCards){alert('Completa tutte e tre le categorie prima di inviare.');return}if(r.bannedMatchId&&p.id!==r.banWinnerId&&Object.values(pick).includes(r.bannedMatchId)){alert('Non puoi scegliere la partita bannata.');return}pick.submittedAt=new Date().toISOString();r.picks[p.id]=pick;saveLocal(false);if(!state.firebaseUrl||syncState!=='live'){render();alert('Pronostici salvati solo su questo browser: collegati a Firebase per inviarli e renderli visibili all’admin.');return}try{await pushFirebase();render();alert('Pronostici inviati e confermati su Firebase.')}catch(err){r.picks[p.id]=prev||pick;saveLocal(false);render();alert('Firebase non ha confermato l’invio: '+err.message)}return};if(e.target.closest('[data-save-settings]')){state.activeRound=+$('#adminRound').value;const pin=$('#newAdminPin').value.trim();if(pin)state.adminPin=pin;saveLocal();render();return};if(e.target.closest('[data-save-deadline]')){const v=$('#deadline').value;if(v&&!romeTimestamp(v)){alert('Inserisci data e ora valide.');return}round(state.activeRound).deadline=v;saveLocal();render();return};if(e.target.closest('[data-save-standings]')){$$('[data-manual-points]').forEach(i=>{const p=player(i.dataset.manualPoints);if(p)p.manualPoints=Number(i.value)||0});saveLocal();render();alert('Punti manuali salvati');return};if(e.target.closest('[data-save-ban]')){const r=round(state.activeRound);r.banWinnerId=$('#banPlayer').value||null;r.bannedMatchId=$('#banMatch').value||null;if(!r.banWinnerId)r.bannedMatchId=null;saveLocal();render();alert('BAN salvato');return};if(e.target.closest('[data-save-players]')){$$('[data-name]').forEach(i=>{const p=player(i.dataset.name),pin=$(`[data-pin="${CSS.escape(i.dataset.name)}"]`);if(p){p.name=i.value.trim()||p.name;p.pin=pin.value.trim()||p.pin}});saveLocal();render();return};if(e.target.closest('[data-add-player]')){if(state.players.length>=MAX){alert(`Massimo ${MAX} partecipanti`);return}state.players.push({id:`p${Date.now()}`,name:`Giocatore ${state.players.length+1}`,pin:'0000',manualPoints:0});saveLocal();render();return};const del=e.target.closest('[data-delete-player]');if(del){const id=del.dataset.deletePlayer;if(!confirm('Eliminare il partecipante?'))return;state.players=state.players.filter(p=>p.id!==id);Object.values(state.rounds).forEach(r=>{delete r.picks[id];if(r.banWinnerId===id){r.banWinnerId=null;r.bannedMatchId=null}});saveLocal();render();return};if(e.target.closest('[data-add-match]')){round(state.activeRound).matches.push({id:`m${Date.now()}`,home:'Casa',away:'Trasferta',time:'Da definire',status:'scheduled',goals:0,cardPoints:0});render();return};if(e.target.closest('[data-save-matches]')){const r=round(state.activeRound);r.matches=$$('[data-match]').map(row=>{const old=r.matches[+row.dataset.match]||{};return{id:old.id||`m${Date.now()}`,home:row.querySelector('[data-home]').value.trim(),away:row.querySelector('[data-away]').value.trim(),time:row.querySelector('[data-time]').value.trim(),status:row.querySelector('[data-status]').value,goals:Math.max(0,+row.querySelector('[data-goals]').value||0),cardPoints:Math.max(0,+row.querySelector('[data-cards]').value||0)}}).filter(m=>m.home&&m.away);if(r.bannedMatchId&&!r.matches.some(m=>m.id===r.bannedMatchId))r.bannedMatchId=null;saveLocal();render();alert('Partite salvate');return};if(e.target.closest('[data-reset]')){if(confirm('Resetta tutti i dati locali?')){state=seed();playerId=null;sessionStorage.removeItem(SESSION);saveLocal();render()}return};
-});
-async function autoConnectFirebase(){if(state.firebaseUrl){if(syncState!=='live')startPolling();return;}if(!DEFAULT_FIREBASE) return;state.firebaseUrl=DEFAULT_FIREBASE;try{await connectFirebase(DEFAULT_FIREBASE);}catch(err){console.warn('Connessione automatica Firebase non riuscita',err);state.firebaseUrl='';syncState='local';saveLocal(false);updateBadge()}}
-render();autoConnectFirebase();
-})();
-</script></body></html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fenomeni da Bar ⚽</title>
+    <style>
+      :root {
+        --bg: #0a1017;
+        --bg-2: #111d2d;
+        --surface: #132536;
+        --surface-2: #1b3045;
+        --surface-3: #203a54;
+        --border: rgba(148, 163, 184, 0.28);
+        --text: #edf5ff;
+        --muted: #9db7cf;
+        --accent: #22c55e;
+        --accent-strong: #16a34a;
+        --gold: #fbbf24;
+        --danger: #ef4444;
+        --info: #38bdf8;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: radial-gradient(circle at top, rgba(56, 189, 248, 0.15), transparent 20%),
+                    radial-gradient(circle at right, rgba(34, 197, 94, 0.12), transparent 22%),
+                    var(--bg);
+        color: var(--text);
+      }
+
+      body {
+        padding: 24px 16px 60px;
+      }
+
+      .container {
+        max-width: 980px;
+        margin: 0 auto;
+      }
+
+      header {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(19, 37, 54, 1));
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 20px 18px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.2);
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: clamp(1.5rem, 3vw, 2.3rem);
+        letter-spacing: -0.03em;
+      }
+
+      .brand p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.52);
+        color: var(--text);
+        border: 1px solid var(--border);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .status-pill.live {
+        color: #b9f7d4;
+        border-color: rgba(34, 197, 94, 0.45);
+        background: rgba(34, 197, 94, 0.12);
+      }
+
+      nav.tabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 16px 0 18px;
+      }
+
+      nav.tabs button {
+        border: 1px solid var(--border);
+        background: rgba(19, 37, 54, 0.9);
+        color: var(--muted);
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      nav.tabs button:hover {
+        border-color: rgba(56, 189, 248, 0.4);
+        color: var(--text);
+      }
+
+      nav.tabs button.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        color: #052e16;
+        border-color: transparent;
+      }
+
+      .card {
+        background: linear-gradient(180deg, rgba(19, 37, 54, 0.96), rgba(17, 29, 45, 0.9));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 10px 26px rgba(0,0,0,0.14);
+      }
+
+      .card h2 {
+        font-size: 1.08rem;
+        margin: 0 0 12px;
+      }
+
+      .card h3 {
+        font-size: 0.98rem;
+        color: var(--info);
+        margin: 0 0 12px;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+      }
+
+      label {
+        display: block;
+        font-size: 0.79rem;
+        color: var(--muted);
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+
+      input, select {
+        width: 100%;
+        background: rgba(9, 17, 24, 0.8);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 0.92rem;
+      }
+
+      input:focus, select:focus {
+        outline: none;
+        border-color: rgba(56, 189, 248, 0.62);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+      }
+
+      .btn {
+        appearance: none;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.15s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        opacity: 0.98;
+      }
+
+      .btn.primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        color: #062b12;
+      }
+
+      .btn.secondary {
+        background: rgba(148, 163, 184, 0.08);
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
+
+      .btn.danger {
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        color: #fecaca;
+      }
+
+      .row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .round-picker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .round-button {
+        background: rgba(148, 163, 184, 0.08);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .round-button.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        color: #062b12;
+        border-color: transparent;
+      }
+
+      .match-box {
+        background: rgba(148, 163, 184, 0.06);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 10px;
+      }
+
+      .match-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+        flex-wrap: wrap;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        border: 1px solid transparent;
+      }
+
+      .badge.gold {
+        background: rgba(251, 191, 36, 0.14);
+        color: #fde68a;
+        border-color: rgba(251, 191, 36, 0.34);
+      }
+
+      .badge.green {
+        background: rgba(34, 197, 94, 0.14);
+        color: #b9f7d4;
+        border-color: rgba(34, 197, 94, 0.34);
+      }
+
+      .ban-box {
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.10), rgba(239, 68, 68, 0.08));
+        border: 1px solid rgba(251, 191, 36, 0.35);
+        border-radius: 12px;
+        padding: 12px;
+        margin-top: 4px;
+      }
+
+      .ban-box strong { color: #fedd7a; }
+
+      .rules-list {
+        margin: 0;
+        padding-left: 18px;
+        display: grid;
+        gap: 8px;
+        color: var(--text);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+
+      th, td {
+        text-align: left;
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .alert {
+        padding: 10px 12px;
+        border-radius: 10px;
+        margin-top: 10px;
+        font-size: 0.88rem;
+      }
+
+      .alert.ok {
+        background: rgba(34, 197, 94, 0.12);
+        border: 1px solid rgba(34, 197, 94, 0.35);
+        color: #bbf7d0;
+      }
+
+      .alert.err {
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        color: #fecaca;
+      }
+
+      .hidden { display: none !important; }
+
+      @media (max-width: 680px) {
+        body { padding: 16px 12px 48px; }
+        header { padding: 16px 14px; }
+        nav.tabs { overflow-x: auto; flex-wrap: nowrap; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="brand">
+          <h1>⚽ Fenomeni da Bar</h1>
+          <p id="headerSubtitle">Serie A • 10 Giornate • Fino a 20 Giocatori</p>
+        </div>
+        <div id="syncBadge" class="status-pill">💾 Locale (Browser)</div>
+      </header>
+
+      <nav class="tabs" role="tablist">
+        <button type="button" class="active" data-tab="play">🎯 Gioca & BAN</button>
+        <button type="button" data-tab="calendar">📅 Calendario</button>
+        <button type="button" data-tab="standings">🏆 Classifica</button>
+        <button type="button" data-tab="players">👥 Partecipanti</button>
+        <button type="button" data-tab="rules">📜 Regolamento</button>
+        <button type="button" data-tab="admin">⚙️ Admin</button>
+      </nav>
+
+      <main id="appContent"></main>
+    </div>
+
+    <script>
+      (function () {
+        const STORAGE_KEY = "fenomeni_da_bar_v1";
+        const MAX_PLAYERS = 20;
+        const TOTAL_ROUNDS = 10;
+
+        function createEmptyRounds() {
+          const rounds = {};
+          for (let i = 1; i <= TOTAL_ROUNDS; i++) {
+            rounds[i] = {
+              deadline: "",
+              matches: [],
+              picks: {},
+              banWinnerId: null,
+              bannedMatchId: null
+            };
+          }
+          return rounds;
+        }
+
+        function getSeedState() {
+          const state = {
+            adminPin: "1234",
+            activeRound: 1,
+            firebaseUrl: "",
+            scoreAdjustments: {},
+            players: [
+              { id: "p1", name: "Alex", pin: "1111" },
+              { id: "p2", name: "Marco", pin: "2222" },
+              { id: "p3", name: "Luca", pin: "3333" },
+              { id: "p4", name: "Teo", pin: "4444" },
+              { id: "p5", name: "Vale", pin: "5555" },
+              { id: "p6", name: "Fede", pin: "6666" },
+              { id: "p7", name: "Simò", pin: "7777" },
+              { id: "p8", name: "Dany", pin: "8888" },
+              { id: "p9", name: "Ricky", pin: "9999" },
+              { id: "p10", name: "Giò", pin: "1010" }
+            ],
+            rounds: createEmptyRounds()
+          };
+
+          state.rounds[1].deadline = "2026-11-20T20:45";
+          state.rounds[1].matches = [
+            { id: "m101", home: "Inter", away: "Atalanta", time: "Ven 20:45", status: "played", goals: 4, cardPoints: 5 },
+            { id: "m102", home: "Venezia", away: "Roma", time: "Sab 15:00", status: "played", goals: 1, cardPoints: 3 },
+            { id: "m103", home: "Bologna", away: "Parma", time: "Sab 18:00", status: "played", goals: 2, cardPoints: 7 },
+            { id: "m104", home: "Milan", away: "Juventus", time: "Sab 20:45", status: "played", goals: 2, cardPoints: 6 }
+          ];
+          state.rounds[1].picks = {
+            p1: { moreGoals: "m101", lessGoals: "m102", moreCards: "m103" },
+            p2: { moreGoals: "m101", lessGoals: "m102", moreCards: "m104" },
+            p3: { moreGoals: "m103", lessGoals: "m102", moreCards: "m103" }
+          };
+
+          state.rounds[2].deadline = "2026-11-27T20:45";
+          state.rounds[2].matches = [
+            { id: "m201", home: "Napoli", away: "Lazio", time: "Ven 20:45", status: "scheduled", goals: 0, cardPoints: 0 },
+            { id: "m202", home: "Fiorentina", away: "Como", time: "Sab 15:00", status: "scheduled", goals: 0, cardPoints: 0 },
+            { id: "m203", home: "Torino", away: "Genoa", time: "Sab 18:00", status: "scheduled", goals: 0, cardPoints: 0 },
+            { id: "m204", home: "Udinese", away: "Cagliari", time: "Dom 12:30", status: "scheduled", goals: 0, cardPoints: 0 }
+          ];
+          state.rounds[2].banWinnerId = "p1";
+          state.rounds[2].bannedMatchId = "m201";
+
+          return state;
+        }
+
+        function normalizeState(raw) {
+          const fallback = getSeedState();
+          const source = raw && typeof raw === "object" ? raw : fallback;
+          const rounds = {};
+
+          for (let i = 1; i <= TOTAL_ROUNDS; i++) {
+            const roundSource = (source.rounds && source.rounds[i]) || {};
+            rounds[i] = {
+              deadline: roundSource.deadline || "",
+              matches: Array.isArray(roundSource.matches) ? roundSource.matches : [],
+              picks: roundSource.picks && typeof roundSource.picks === "object" ? roundSource.picks : {},
+              banWinnerId: roundSource.banWinnerId || null,
+              bannedMatchId: roundSource.bannedMatchId || null
+            };
+          }
+
+          const players = Array.isArray(source.players)
+            ? source.players.map((player, index) => ({
+                id: player.id || `p${index + 1}`,
+                name: player.name || `Giocatore ${index + 1}`,
+                pin: String(player.pin ?? String(1000 + index + 1))
+              }))
+            : fallback.players;
+
+          return {
+            adminPin: source.adminPin || "1234",
+            activeRound: Math.min(TOTAL_ROUNDS, Math.max(1, Number(source.activeRound) || 1)),
+            firebaseUrl: source.firebaseUrl || "",
+            scoreAdjustments: source.scoreAdjustments && typeof source.scoreAdjustments === "object" ? source.scoreAdjustments : {},
+            players: players.slice(0, MAX_PLAYERS),
+            rounds
+          };
+        }
+
+        function getFirebaseUrl() {
+          const value = (state.firebaseUrl || "").trim();
+          if (!value) return "";
+          return value.endsWith(".json") ? value : `${value.replace(/\/$/, "")}.json`;
+        }
+
+        function loadState() {
+          try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return getSeedState();
+            return normalizeState(JSON.parse(saved));
+          } catch (e) {
+            return getSeedState();
+          }
+        }
+
+        let state = loadState();
+        let currentTab = "play";
+        let adminUnlocked = false;
+        let activePlayerId = null;
+
+        try {
+          const session = JSON.parse(localStorage.getItem("fenomeni_da_bar_session_v1") || "null");
+          if (session && session.playerId) activePlayerId = session.playerId;
+        } catch (e) {}
+
+        function saveLocal() {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          } catch (e) {}
+        }
+
+        function saveSession() {
+          try {
+            localStorage.setItem("fenomeni_da_bar_session_v1", JSON.stringify({ playerId: activePlayerId }));
+          } catch (e) {}
+        }
+
+        async function loadFirebase() {
+          const url = getFirebaseUrl();
+          if (!url) return false;
+          try {
+            const response = await fetch(url, { method: "GET" });
+            if (!response.ok) throw new Error("Firebase fetch failed");
+            const remote = await response.json();
+            if (remote && typeof remote === "object") {
+              state = normalizeState(remote);
+              saveLocal();
+              renderApp();
+              return true;
+            }
+          } catch (e) {
+            console.warn("Firebase load failed:", e);
+          }
+          return false;
+        }
+
+        async function saveFirebase() {
+          const url = getFirebaseUrl();
+          if (!url) return false;
+          try {
+            const response = await fetch(url, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(state)
+            });
+            if (!response.ok) throw new Error("Firebase save failed");
+            return true;
+          } catch (e) {
+            console.warn("Firebase save failed:", e);
+            return false;
+          }
+        }
+
+        function updateSyncBadge() {
+          const badge = document.getElementById("syncBadge");
+          if (!badge) return;
+          const url = getFirebaseUrl();
+          badge.classList.toggle("live", !!url);
+          badge.textContent = url ? "🔥 Firebase attivo" : "💾 Locale (Browser)";
+        }
+
+        function getPlayerById(playerId) {
+          return state.players.find((player) => player.id === playerId) || null;
+        }
+
+        function getMatchById(roundNum, matchId) {
+          const round = state.rounds[roundNum] || { matches: [] };
+          return (round.matches || []).find((match) => match.id === matchId) || null;
+        }
+
+        function getCategoryWinners(roundNum) {
+          const matches = (state.rounds[roundNum]?.matches || []).filter((match) => match.status === "played");
+          if (!matches.length) {
+            return { moreGoals: [], lessGoals: [], moreCards: [], hasPlayedMatches: false };
+          }
+
+          const maxGoals = Math.max(...matches.map((match) => Number(match.goals) || 0));
+          const minGoals = Math.min(...matches.map((match) => Number(match.goals) || 0));
+          const maxCards = Math.max(...matches.map((match) => Number(match.cardPoints) || 0));
+
+          return {
+            moreGoals: matches.filter((match) => (Number(match.goals) || 0) === maxGoals).map((match) => match.id),
+            lessGoals: matches.filter((match) => (Number(match.goals) || 0) === minGoals).map((match) => match.id),
+            moreCards: matches.filter((match) => (Number(match.cardPoints) || 0) === maxCards).map((match) => match.id),
+            hasPlayedMatches: true
+          };
+        }
+
+        function evaluatePlayerRound(roundNum, playerId) {
+          const pick = state.rounds[roundNum]?.picks?.[playerId];
+          if (!pick) return { hits: 0, bonus: 0, total: 0, enPlein: false, hasPick: false };
+
+          const winners = getCategoryWinners(roundNum);
+          if (!winners.hasPlayedMatches) {
+            return { hits: 0, bonus: 0, total: 0, enPlein: false, hasPick: true, pending: true };
+          }
+
+          let hits = 0;
+          const checks = [
+            { key: "moreGoals", arr: winners.moreGoals },
+            { key: "lessGoals", arr: winners.lessGoals },
+            { key: "moreCards", arr: winners.moreCards }
+          ];
+
+          checks.forEach(({ key, arr }) => {
+            const chosenId = pick[key];
+            const match = getMatchById(roundNum, chosenId);
+            if (match && match.status === "played" && arr.includes(chosenId)) {
+              hits += 1;
+            }
+          });
+
+          const enPlein = hits === 3;
+          const bonus = enPlein ? 1 : 0;
+          return { hits, bonus, total: hits + bonus, enPlein, hasPick: true, pending: false };
+        }
+
+        function getStandings() {
+          return state.players
+            .map((player) => {
+              let totalPoints = 0;
+              let totalHits = 0;
+              let enPleinCount = 0;
+              let wins = 0;
+              const adjustment = Number(state.scoreAdjustments?.[player.id]) || 0;
+
+              for (let roundNum = 1; roundNum <= TOTAL_ROUNDS; roundNum++) {
+                const result = evaluatePlayerRound(roundNum, player.id);
+                totalPoints += result.total;
+                totalHits += result.hits;
+                if (result.enPlein) enPleinCount += 1;
+
+                const scores = state.players.map((p) => ({
+                  id: p.id,
+                  score: evaluatePlayerRound(roundNum, p.id).total
+                }));
+
+                const maxScore = Math.max(...scores.map((entry) => entry.score));
+                if (maxScore > 0 && scores.find((entry) => entry.id === player.id)?.score === maxScore) {
+                  wins += 1;
+                }
+              }
+
+              return {
+                player,
+                totalPoints: totalPoints + adjustment,
+                totalHits,
+                enPleinCount,
+                wins,
+                adjustment
+              };
+            })
+            .sort((a, b) => b.totalPoints - a.totalPoints || b.totalHits - a.totalHits);
+        }
+
+        function renderLogin() {
+          return `
+            <section class="card">
+              <h2>🔒 Accesso partecipanti</h2>
+              <div class="grid-2">
+                <div>
+                  <label>Giocatore</label>
+                  <select id="loginPlayerSelect">
+                    <option value="">Seleziona</option>
+                    ${state.players.map((player) => `<option value="${player.id}">${player.name}</option>`).join("")}
+                  </select>
+                </div>
+                <div>
+                  <label>PIN</label>
+                  <input id="loginPlayerPin" type="password" placeholder="Inserisci il PIN" />
+                </div>
+              </div>
+              <div class="row-actions">
+                <button type="button" class="btn primary" data-player-login>Accedi</button>
+              </div>
+            </section>
+          `;
+        }
+
+        function renderPlay() {
+          const round = state.rounds[state.activeRound] || { picks: {}, matches: [] };
+          const bannedMatch = round.bannedMatchId ? getMatchById(state.activeRound, round.bannedMatchId) : null;
+          const currentPlayer = activePlayerId ? getPlayerById(activePlayerId) : null;
+
+          if (!currentPlayer) {
+            return `
+              ${renderLogin()}
+              <section class="card">
+                <h2>🎯 Seleziona round</h2>
+                <div class="round-picker">
+                  ${Array.from({ length: TOTAL_ROUNDS }, (_, idx) => idx + 1).map((n) => `
+                    <button type="button" class="round-button ${n === state.activeRound ? 'active' : ''}" data-round-btn="${n}">${n}</button>
+                  `).join('')}
+                </div>
+                <div class="ban-box">
+                  <strong>${bannedMatch ? `Match bannato: ${bannedMatch.home} vs ${bannedMatch.away}` : "Nessun match bannato"}</strong>
+                </div>
+              </section>
+            `;
+          }
+
+          const pick = round.picks[currentPlayer.id] || {};
+
+          return `
+            <section class="card">
+              <h2>🎯 Seleziona round</h2>
+              <div class="round-picker">
+                ${Array.from({ length: TOTAL_ROUNDS }, (_, idx) => idx + 1).map((n) => `
+                  <button type="button" class="round-button ${n === state.activeRound ? 'active' : ''}" data-round-btn="${n}">${n}</button>
+                `).join('')}
+              </div>
+              <div class="row-actions">
+                <button type="button" class="btn primary" data-save-picks>Salva schedina</button>
+                <button type="button" class="btn secondary" data-player-logout>Esci</button>
+              </div>
+            </section>
+
+            <section class="card">
+              <h2>📌 Round ${state.activeRound}</h2>
+              <div class="muted">Giocatore: <strong>${currentPlayer.name}</strong></div>
+              <div class="muted">Deadline: ${round.deadline || "Non impostata"}</div>
+              <div class="ban-box">
+                <strong>${bannedMatch ? `Match bannato: ${bannedMatch.home} vs ${bannedMatch.away}` : "Nessun match bannato"}</strong>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3>${currentPlayer.name}</h3>
+              <div class="grid-2">
+                <div>
+                  <label>Più gol</label>
+                  <select data-player-select="${currentPlayer.id}" data-field="moreGoals">
+                    <option value="">--</option>
+                    ${round.matches.map((match) => `<option value="${match.id}" ${pick.moreGoals === match.id ? "selected" : ""}>${match.home} vs ${match.away}</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label>Meno gol</label>
+                  <select data-player-select="${currentPlayer.id}" data-field="lessGoals">
+                    <option value="">--</option>
+                    ${round.matches.map((match) => `<option value="${match.id}" ${pick.lessGoals === match.id ? "selected" : ""}>${match.home} vs ${match.away}</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label>Più cartellini</label>
+                  <select data-player-select="${currentPlayer.id}" data-field="moreCards">
+                    <option value="">--</option>
+                    ${round.matches.map((match) => `<option value="${match.id}" ${pick.moreCards === match.id ? "selected" : ""}>${match.home} vs ${match.away}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+            </section>
+          `;
+        }
+
+        function renderCalendar() {
+          return Array.from({ length: TOTAL_ROUNDS }, (_, idx) => idx + 1).map((roundNum) => {
+            const round = state.rounds[roundNum] || { matches: [] };
+            const matchesHtml = round.matches.length
+              ? round.matches.map((match) => `
+                  <div class="match-box">
+                    <div class="match-top">
+                      <strong>${match.home} vs ${match.away}</strong>
+                      <span class="badge ${match.status === "played" ? "green" : "gold"}">${match.status === "played" ? "Giocato" : "Programmato"}</span>
+                    </div>
+                    <div class="muted">${match.time}</div>
+                    ${match.status === "played" ? `<div class="muted">Risultato: ${match.home} ${match.goals} - ${match.away} ${match.goals}</div>` : ""}
+                  </div>
+                `).join('')
+              : '<div class="muted">Nessuna partita impostata.</div>';
+
+            return `
+              <section class="card">
+                <h2>📅 Round ${roundNum}</h2>
+                ${matchesHtml}
+              </section>
+            `;
+          }).join('');
+        }
+
+        function renderStandings() {
+          const rowsHtml = getStandings().map(({ player, totalPoints, totalHits, enPleinCount, wins, adjustment }) => `
+            <tr>
+              <td><strong>${player.name}</strong></td>
+              <td>${totalPoints}</td>
+              <td>${adjustment > 0 ? "+" : ""}${adjustment}</td>
+              <td>${totalHits}</td>
+              <td>${enPleinCount}</td>
+              <td>${wins}</td>
+            </tr>
+          `).join('');
+
+          return `
+            <section class="card">
+              <h2>🏆 Classifica</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Giocatore</th>
+                    <th>Punti</th>
+                    <th>Correzione</th>
+                    <th>Hit</th>
+                    <th>En plein</th>
+                    <th>Vittorie</th>
+                  </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+              </table>
+            </section>
+          `;
+        }
+
+        function renderPlayers() {
+          const rows = state.players.map((player) => `
+            <tr>
+              <td>${player.name}</td>
+              <td>${player.id}</td>
+            </tr>
+          `).join('');
+
+          return `
+            <section class="card">
+              <h2>👥 Partecipanti</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>ID</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </section>
+          `;
+        }
+
+        function renderRules() {
+          return `
+            <section class="card">
+              <h2>📜 Regolamento</h2>
+              <ul class="rules-list">
+                <li>Ogni giocatore sceglie 3 partite per categoria: più gol, meno gol, più cartellini.</li>
+                <li>Per ogni scelta corretta si ottiene 1 punto; un en plein (3/3) vale +1 bonus.</li>
+                <li>Il round si chiude con la deadline del calendario.</li>
+                <li>Il BAN esclude il match successivo dal conteggio del round che segue.</li>
+                <li>La classifica viene aggiornata automaticamente in base alle schedine.</li>
+              </ul>
+            </section>
+          `;
+        }
+
+        function renderAdmin() {
+          if (!adminUnlocked) {
+            return `
+              <section class="card">
+                <h2>🔒 Accesso admin</h2>
+                <div class="grid-2">
+                  <div>
+                    <label>PIN</label>
+                    <input id="adminPinInput" type="password" placeholder="Inserisci PIN" />
+                  </div>
+                </div>
+                <div class="row-actions">
+                  <button type="button" class="btn primary" data-admin-unlock>Accedi</button>
+                </div>
+              </section>
+            `;
+          }
+
+          const playerRows = state.players.map((player) => `
+            <div class="card" style="margin-bottom:10px;">
+              <div class="grid-2">
+                <div>
+                  <label>Nome</label>
+                  <input data-player-name="${player.id}" value="${player.name}" />
+                </div>
+                <div>
+                  <label>PIN</label>
+                  <input data-player-pin="${player.id}" value="${player.pin || ""}" />
+                </div>
+              </div>
+              <div class="row-actions">
+                <button type="button" class="btn danger" data-player-delete="${player.id}">Elimina</button>
+              </div>
+            </div>
+          `).join('');
+
+          const roundMatchRows = (state.rounds[state.activeRound]?.matches || []).map((match, index) => `
+            <div class="card" style="margin-bottom:10px;">
+              <div class="grid-2">
+                <div><label>Casa</label><input data-match-home="${index}" value="${match.home}" /></div>
+                <div><label>Trasferta</label><input data-match-away="${index}" value="${match.away}" /></div>
+                <div><label>Orario</label><input data-match-time="${index}" value="${match.time}" /></div>
+                <div>
+                  <label>Stato</label>
+                  <select data-match-status="${index}">
+                    <option value="scheduled" ${match.status === "scheduled" ? "selected" : ""}>Programmata</option>
+                    <option value="played" ${match.status === "played" ? "selected" : ""}>Giocata</option>
+                  </select>
+                </div>
+                <div><label>Gol</label><input type="number" min="0" data-match-goals="${index}" value="${Number(match.goals) || 0}" /></div>
+                <div><label>Cartellini</label><input type="number" min="0" data-match-cards="${index}" value="${Number(match.cardPoints) || 0}" /></div>
+              </div>
+              <div class="row-actions">
+                <button type="button" class="btn danger" data-match-delete="${index}">Rimuovi</button>
+              </div>
+            </div>
+          `).join('');
+
+          return `
+            <section class="card">
+              <h2>⚙️ Pannello admin</h2>
+              <div class="grid-2">
+                <div>
+                  <label>Firebase URL</label>
+                  <input id="firebaseUrlInput" type="text" value="${state.firebaseUrl || ""}" placeholder="https://nome-progetto-default-rtdb.firebaseio.com/fenomeni_da_bar.json" />
+                </div>
+                <div>
+                  <label>Round attivo</label>
+                  <select id="activeRoundInput">
+                    ${Array.from({ length: TOTAL_ROUNDS }, (_, idx) => idx + 1).map((n) => `<option value="${n}" ${n === state.activeRound ? "selected" : ""}>Round ${n}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+              <div class="row-actions">
+                <button type="button" class="btn primary" data-admin-save>Salva impostazioni</button>
+                <button type="button" class="btn secondary" data-sync-firebase>Sincronizza Firebase</button>
+                <button type="button" class="btn secondary" data-admin-reset>Reset locale</button>
+              </div>
+            </section>
+
+            <section class="card">
+              <h2>🏆 Correzione classifica</h2>
+              ${state.players.map((player) => `
+                <div class="grid-2" style="margin-bottom:10px;">
+                  <div><label>${player.name}</label></div>
+                  <div>
+                    <label>Correzione punti</label>
+                    <input type="number" data-score-adjust="${player.id}" value="${Number(state.scoreAdjustments?.[player.id]) || 0}" />
+                  </div>
+                </div>
+              `).join('')}
+              <div class="row-actions">
+                <button type="button" class="btn primary" data-save-adjustments>Salva correzioni</button>
+              </div>
+            </section>
+
+            <section class="card">
+              <h2>🚫 Potere BAN</h2>
+              <div class="grid-2">
+                <div>
+                  <label>Giocatore che ha il BAN</label>
+                  <select id="banWinnerInput">
+                    <option value="">Nessuno</option>
+                    ${state.players.map((player) => `<option value="${player.id}" ${state.rounds[state.activeRound]?.banWinnerId === player.id ? "selected" : ""}>${player.name}</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label>Partita bannata</label>
+                  <select id="bannedMatchInput">
+                    <option value="">Nessuna</option>
+                    ${(state.rounds[state.activeRound]?.matches || []).map((match) => `<option value="${match.id}" ${state.rounds[state.activeRound]?.bannedMatchId === match.id ? "selected" : ""}>${match.home} vs ${match.away}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+              <div class="row-actions">
+                <button type="button" class="btn primary" data-save-ban>Salva BAN</button>
+              </div>
+            </section>
+
+            <section class="card">
+              <h2>👥 Gestione partecipanti</h2>
+              ${playerRows}
+              <div class="row-actions">
+                <button type="button" class="btn primary" data-add-player>+ Aggiungi partecipante</button>
+                <button type="button" class="btn secondary" data-save-players>Salva partecipanti</button>
+              </div>
+            </section>
+
+            <section class="card">
+              <h2>⚽ Gestione partite del round ${state.activeRound}</h2>
+              ${roundMatchRows || '<div class="muted">Nessuna partita impostata in questo round.</div>'}
+              <div class="row-actions">
+                <button type="button" class="btn primary" data-add-match>+ Aggiungi partita</button>
+                <button type="button" class="btn secondary" data-save-matches>Salva partite</button>
+              </div>
+            </section>
+          `;
+        }
+
+        function renderApp() {
+          const app = document.getElementById("appContent");
+          if (!app) return;
+
+          const map = {
+            play: renderPlay(),
+            calendar: renderCalendar(),
+            standings: renderStandings(),
+            players: renderPlayers(),
+            rules: renderRules(),
+            admin: renderAdmin()
+          };
+
+          app.innerHTML = map[currentTab] || map.play;
+
+          document.querySelectorAll("[data-tab]").forEach((button) => {
+            button.classList.toggle("active", button.dataset.tab === currentTab);
+          });
+
+          const subtitle = document.getElementById("headerSubtitle");
+          if (subtitle) subtitle.textContent = `Serie A • Round ${state.activeRound} • ${state.players.length} Partecipanti`;
+
+          updateSyncBadge();
+        }
+
+        function syncNow() {
+          const path = getFirebaseUrl();
+          if (!path) {
+            alert("Inserisci l'URL Firebase prima di sincronizzare.");
+            return;
+          }
+          saveLocal();
+          saveFirebase();
+        }
+
+        document.addEventListener("click", async (event) => {
+          const tabButton = event.target.closest("[data-tab]");
+          if (tabButton) {
+            currentTab = tabButton.dataset.tab;
+            renderApp();
+            return;
+          }
+
+          const roundButton = event.target.closest("[data-round-btn]");
+          if (roundButton) {
+            state.activeRound = Number(roundButton.dataset.roundBtn);
+            saveLocal();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-player-login]")) {
+            const playerId = document.getElementById("loginPlayerSelect")?.value || "";
+            const pin = document.getElementById("loginPlayerPin")?.value || "";
+            const player = getPlayerById(playerId);
+            if (!player) {
+              alert("Seleziona un giocatore");
+              return;
+            }
+            if (String(player.pin) !== String(pin)) {
+              alert("PIN errato");
+              return;
+            }
+            activePlayerId = player.id;
+            saveSession();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-player-logout]")) {
+            activePlayerId = null;
+            saveSession();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-save-picks]")) {
+            const round = state.rounds[state.activeRound];
+            document.querySelectorAll("[data-player-select]").forEach((select) => {
+              const playerId = select.dataset.playerSelect;
+              const field = select.dataset.field;
+              if (!round.picks[playerId]) round.picks[playerId] = {};
+              round.picks[playerId][field] = select.value || "";
+            });
+            saveLocal();
+            await saveFirebase();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-admin-unlock]")) {
+            const pinValue = document.getElementById("adminPinInput")?.value || "";
+            if (String(pinValue) === String(state.adminPin)) {
+              adminUnlocked = true;
+              renderApp();
+            } else {
+              alert("PIN errato");
+            }
+            return;
+          }
+
+          if (event.target.closest("[data-admin-save]")) {
+            state.firebaseUrl = (document.getElementById("firebaseUrlInput")?.value || "").trim();
+            state.activeRound = Number(document.getElementById("activeRoundInput")?.value || state.activeRound);
+            saveLocal();
+            await saveFirebase();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-sync-firebase]")) {
+            syncNow();
+            return;
+          }
+
+          if (event.target.closest("[data-admin-reset]")) {
+            state = getSeedState();
+            adminUnlocked = true;
+            saveLocal();
+            await saveFirebase();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-save-players]")) {
+            state.players.forEach((player) => {
+              const name = document.querySelector(`[data-player-name="${player.id}"]`)?.value?.trim();
+              const pin = document.querySelector(`[data-player-pin="${player.id}"]`)?.value?.trim();
+              if (name) player.name = name;
+              if (pin) player.pin = pin;
+            });
+            saveLocal();
+            await saveFirebase();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-add-player]")) {
+            if (state.players.length >= MAX_PLAYERS) {
+              alert("Massimo 20 partecipanti");
+              return;
+            }
+            const nextId = `p${Date.now()}`;
+            state.players.push({ id: nextId, name: `Giocatore ${state.players.length + 1}`, pin: String(1000 + state.players.length + 1) });
+            saveLocal();
+            await saveFirebase();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-player-delete]")) {
+            const playerId = event.target.closest("[data-player-delete]").dataset.playerDelete;
+            state.players = state.players.filter((player) => player.id !== playerId);
+            Object.keys(state.rounds).forEach((roundKey) => {
+              const round = state.rounds[Number(roundKey)];
+              if (round && round.picks) delete round.picks[playerId];
+            });
+            if (state.scoreAdjustments && state.scoreAdjustments[playerId]) delete state.scoreAdjustments[playerId];
+            if (activePlayerId === playerId) {
+              activePlayerId = null;
+              saveSession();
+            }
+            saveLocal();
+            await saveFirebase();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-save-adjustments]")) {
+            state.players.forEach((player) => {
+              const value = Number(document.querySelector(`[data-score-adjust="${player.id}"]`)?.value || 0);
+              state.scoreAdjustments[player.id] = value;
+            });
+            saveLocal();
+            await saveFirebase();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-save-ban]")) {
+            const round = state.rounds[state.activeRound] || { matches: [] };
+            round.banWinnerId = document.getElementById("banWinnerInput")?.value || null;
+            round.bannedMatchId = document.getElementById("bannedMatchInput")?.value || null;
+            saveLocal();
+            await saveFirebase();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-add-match]")) {
+            const round = state.rounds[state.activeRound] || { matches: [] };
+            round.matches.push({
+              id: `m${Date.now()}`,
+              home: "Casa",
+              away: "Trasferta",
+              time: "Da definire",
+              status: "scheduled",
+              goals: 0,
+              cardPoints: 0
+            });
+            saveLocal();
+            await saveFirebase();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-match-delete]")) {
+            const index = Number(event.target.closest("[data-match-delete]").dataset.matchDelete);
+            const round = state.rounds[state.activeRound];
+            if (round && round.matches[index]) {
+              round.matches.splice(index, 1);
+            }
+            saveLocal();
+            await saveFirebase();
+            renderApp();
+            return;
+          }
+
+          if (event.target.closest("[data-save-matches]")) {
+            const round = state.rounds[state.activeRound] || { matches: [] };
+            round.matches = Array.from(document.querySelectorAll("[data-match-home]")).map((_, index) => {
+              const home = document.querySelector(`[data-match-home="${index}"]`)?.value || "Casa";
+              const away = document.querySelector(`[data-match-away="${index}"]`)?.value || "Trasferta";
+              const time = document.querySelector(`[data-match-time="${index}"]`)?.value || "Da definire";
+              const status = document.querySelector(`[data-match-status="${index}"]`)?.value || "scheduled";
+              const goals = Number(document.querySelector(`[data-match-goals="${index}"]`)?.value || 0);
+              const cardPoints = Number(document.querySelector(`[data-match-cards="${index}"]`)?.value || 0);
+              return {
+                id: round.matches[index]?.id || `m${Date.now()}-${index}`,
+                home,
+                away,
+                time,
+                status,
+                goals,
+                cardPoints
+              };
+            });
+            saveLocal();
+            await saveFirebase();
+            renderApp();
+            return;
+          }
+        });
+
+        document.addEventListener("change", (event) => {
+          const target = event.target;
+          if (target.matches("[data-player-select]")) {
+            const playerId = target.dataset.playerSelect;
+            const field = target.dataset.field;
+            const round = state.rounds[state.activeRound];
+            if (!round.picks[playerId]) round.picks[playerId] = {};
+            round.picks[playerId][field] = target.value || "";
+            saveLocal();
+            saveFirebase();
+          }
+        });
+
+        renderApp();
+        if (getFirebaseUrl()) {
+          loadFirebase();
+        }
+      })();
+    </script>
+  </body>
+</html>
