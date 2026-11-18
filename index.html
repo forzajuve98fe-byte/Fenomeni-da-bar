@@ -59,7 +59,7 @@
     .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; }
 
     label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 9px 11px;
       border-radius: 10px;
@@ -67,6 +67,12 @@
       background: #09121a;
       color: var(--text);
       font-size: 0.92rem;
+      font-family: inherit;
+    }
+    textarea {
+      min-height: 240px;
+      resize: vertical;
+      line-height: 1.5;
     }
 
     .ban-box {
@@ -75,6 +81,15 @@
       border-radius: 12px;
       padding: 11px;
       margin-top: 10px;
+    }
+    .rules-box {
+      background: rgba(9, 18, 26, 0.65);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      white-space: pre-line;
+      line-height: 1.55;
+      font-size: 0.92rem;
     }
     .badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; }
     .badge.green { background: rgba(34, 197, 94, 0.16); color: #bbf7d0; }
@@ -112,6 +127,7 @@
         <button type="button" id="tab-join" onclick="switchTab('join')">🙋 Richiedi Accesso</button>
         <button type="button" id="tab-cal" onclick="switchTab('cal')">📅 Calendario</button>
         <button type="button" id="tab-rank" onclick="switchTab('rank')">🏆 Classifica</button>
+        <button type="button" id="tab-rules" onclick="switchTab('rules')">📜 Regolamento</button>
         <button type="button" id="tab-admin" onclick="switchTab('admin')">⚙️ Admin</button>
       </div>
       <div id="banner"></div>
@@ -137,6 +153,17 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const rootRef = ref(db, "platform");
+
+    const DEFAULT_RULES_TEXT = [
+      "1. Categorie di gioco (3): Ogni partecipante sceglie una partita per ciascuna delle 3 categorie: Più Gol, Meno Gol e Più Cartellini. In caso di ex aequo tra più partite sulla stessa categoria, tutte le partite a pari merito risultano vincenti per quella categoria.",
+      "2. Calcolo dei cartellini: Valgono esclusivamente i cartellini assegnati ai calciatori in campo (esclusi panchina, staff o provvedimenti fuori dal campo). Punteggi: Cartellino Giallo = 1 punto, Cartellino Rosso diretto = 2 punti, Doppio Giallo + Rosso = 4 punti.",
+      "3. Bonus TriplettaBOMB: Chi indovina tutte e 3 le categorie nella stessa giornata (3/3) ottiene +1 punto bonus extra.",
+      "4. Partite rinviate o sospese: Le partite rinviate o sospese valgono 0 punti e non assegnano punti categoria.",
+      "5. Regola del BAN: La partita oggetto di BAN è bloccata per tutti i partecipanti tranne che per il detentore del BAN (ad esempio Atalanta - Inter nella Giornata 9 è esclusiva di Enrico Maria). Per il turno successivo (come la Giornata 10), il diritto al BAN spetta solo al vincitore solitario di giornata: in caso di ex aequo al primo posto, non viene assegnato alcun BAN.",
+      "6. Scadenze e visibilità pronostici: Le schedine vanno inviate entro la scadenza impostata per la giornata. Prima della scadenza sono visibili solo l'avvenuto invio e l'orario; le scelte vengono mostrate in chiaro dopo la chiusura (oppure all'Admin).",
+      "7. Accessi, PIN e richieste: Ogni giocatore entra con il proprio nome e PIN personale (modificabile al primo accesso e in qualsiasi momento). Nuovi partecipanti possono inviare una richiesta di accesso dalla scheda dedicata, soggetta ad approvazione dell'Admin.",
+      "8. Classifica e criteri di spareggio: La classifica viene ordinata per: 1) Punti Totali, 2) En Plein / TriplettaBOMB, 3) Vittorie di giornata."
+    ].join("\n\n");
 
     const BASE_PLAYERS = [
       { id: "p1", name: "Alex", pin: "1101", pinChanged: false, basePoints: 8, status: "approved" },
@@ -167,6 +194,7 @@
         adminPin: "1234",
         adminPinChanged: false,
         activeTournamentId: "split_1",
+        rulesText: DEFAULT_RULES_TEXT,
         tournaments: {
           split_1: {
             id: "split_1",
@@ -290,7 +318,7 @@
     window.switchTab = function(tab) {
       currentTab = tab;
       clearNotify();
-      ["play", "picks", "join", "cal", "rank", "admin"].forEach(k => {
+      ["play", "picks", "join", "cal", "rank", "rules", "admin"].forEach(k => {
         const btn = document.getElementById("tab-" + k);
         if (btn) btn.classList.toggle("active", k === tab);
       });
@@ -519,6 +547,23 @@
       notify("ok", `Partite e risultati Giornata ${selectedRound} salvati!`);
     };
 
+    window.saveRulesText = async function() {
+      const text = (document.getElementById("admRulesText").value || "").trim();
+      if (!text) return notify("err", "Il regolamento non può essere vuoto.");
+      const next = structuredClone(state);
+      next.rulesText = text;
+      await savePlatform(next);
+      notify("ok", "Regolamento aggiornato e sincronizzato per tutti!");
+    };
+
+    window.resetDefaultRules = async function() {
+      const next = structuredClone(state);
+      next.rulesText = DEFAULT_RULES_TEXT;
+      await savePlatform(next);
+      notify("ok", "Ripristinato il regolamento ufficiale predefinito.");
+      render();
+    };
+
     function render() {
       if (!state) return;
       const tourneys = Object.values(state.tournaments || {});
@@ -537,6 +582,7 @@
       else if (currentTab === "join") renderJoin(el, t);
       else if (currentTab === "cal") renderCalendar(el, t, roundKeys);
       else if (currentTab === "rank") renderStandings(el, t, roundKeys);
+      else if (currentTab === "rules") renderRules(el);
       else renderAdmin(el, t, roundKeys);
     }
 
@@ -854,6 +900,17 @@
       `;
     }
 
+    function renderRules(el) {
+      const text = state.rulesText || DEFAULT_RULES_TEXT;
+      el.innerHTML = `
+        <div class="card">
+          <h2>📜 Regolamento Ufficiale</h2>
+          <div class="muted" style="margin-bottom:10px;">Regole punto per punto sincronizzate in tempo reale (modificabili dal pannello Admin).</div>
+          <div class="rules-box">${text}</div>
+        </div>
+      `;
+    }
+
     function renderAdmin(el, t, roundKeys) {
       if (!adminUnlocked) {
         el.innerHTML = `
@@ -943,7 +1000,17 @@
           `).join("")}
           <div class="row"><button type="button" class="btn primary" onclick="saveMatches()">Salva Partite e Risultati</button></div>
 
-          <h3 style="margin-top:16px;">5. Reimposta PIN Admin</h3>
+          <h3 style="margin-top:16px;">5. Modifica Regolamento</h3>
+          <div>
+            <label>Testo del Regolamento punto per punto</label>
+            <textarea id="admRulesText">${state.rulesText || DEFAULT_RULES_TEXT}</textarea>
+          </div>
+          <div class="row">
+            <button type="button" class="btn primary" onclick="saveRulesText()">Salva Regolamento</button>
+            <button type="button" class="btn secondary" onclick="resetDefaultRules()">Ripristina Predefinito</button>
+          </div>
+
+          <h3 style="margin-top:16px;">6. Reimposta PIN Admin</h3>
           <div class="grid-2">
             <div><label>Nuovo PIN Admin (min. 4)</label><input id="newAdminPin" type="password" /></div>
             <div><label>Conferma PIN Admin</label><input id="confirmAdminPin" type="password" /></div>
@@ -963,6 +1030,9 @@
         return;
       }
       state = snap.val();
+      if (!state.rulesText) {
+        state.rulesText = DEFAULT_RULES_TEXT;
+      }
       if (state.activeTournamentId && !currentTournamentId) {
         currentTournamentId = state.activeTournamentId;
       }
