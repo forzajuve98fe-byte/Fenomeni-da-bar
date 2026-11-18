@@ -26,7 +26,7 @@
       color: var(--text);
       padding: 16px 12px 64px;
     }
-    .wrap { max-width: 980px; margin: 0 auto; }
+    .wrap { max-width: 1020px; margin: 0 auto; }
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -81,6 +81,7 @@
     .badge.gold { background: rgba(251, 191, 36, 0.16); color: #fde68a; }
     .badge.red { background: rgba(239, 68, 68, 0.16); color: #fecaca; }
 
+    .table-wrap { width: 100%; overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 8px; }
     th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
     th { color: var(--muted); font-size: 0.74rem; text-transform: uppercase; }
@@ -107,6 +108,7 @@
 
       <div class="tabs">
         <button type="button" id="tab-play" class="active" onclick="switchTab('play')">🎯 Gioca &amp; BAN</button>
+        <button type="button" id="tab-picks" onclick="switchTab('picks')">📝 Pronostici</button>
         <button type="button" id="tab-join" onclick="switchTab('join')">🙋 Richiedi Accesso</button>
         <button type="button" id="tab-cal" onclick="switchTab('cal')">📅 Calendario</button>
         <button type="button" id="tab-rank" onclick="switchTab('rank')">🏆 Classifica</button>
@@ -231,6 +233,13 @@
       return m ? `${m.home} - ${m.away}` : "-";
     }
 
+    function formatTime(iso) {
+      if (!iso) return "-";
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return "-";
+      return d.toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    }
+
     function isRoundClosed(rObj) {
       if (!rObj || !rObj.deadline) return false;
       const ts = new Date(rObj.deadline).getTime();
@@ -281,8 +290,9 @@
     window.switchTab = function(tab) {
       currentTab = tab;
       clearNotify();
-      ["play", "join", "cal", "rank", "admin"].forEach(k => {
-        document.getElementById("tab-" + k).classList.toggle("active", k === tab);
+      ["play", "picks", "join", "cal", "rank", "admin"].forEach(k => {
+        const btn = document.getElementById("tab-" + k);
+        if (btn) btn.classList.toggle("active", k === tab);
       });
       render();
     };
@@ -354,7 +364,7 @@
         [loggedPlayer.id]: { moreGoals, lessGoals, moreCards, updatedAt: new Date().toISOString() }
       };
       await savePlatform(next);
-      notify("ok", "Pronostici salvati in tempo reale!");
+      notify("ok", "Pronostici salvati! Li trovi subito nella sezione Pronostici.");
     };
 
     window.saveBan = async function(targetRound) {
@@ -523,6 +533,7 @@
 
       const el = document.getElementById("content");
       if (currentTab === "play") renderPlay(el, t, roundKeys);
+      else if (currentTab === "picks") renderPicks(el, t, roundKeys);
       else if (currentTab === "join") renderJoin(el, t);
       else if (currentTab === "cal") renderCalendar(el, t, roundKeys);
       else if (currentTab === "rank") renderStandings(el, t, roundKeys);
@@ -638,6 +649,89 @@
       el.innerHTML = html;
     }
 
+    function renderPicks(el, t, roundKeys) {
+      const rObj = t.rounds[selectedRound];
+      const closed = isRoundClosed(rObj);
+      const revealChoices = closed || adminUnlocked;
+      const players = getApprovedPlayers(t);
+      const picks = rObj.picks || {};
+      const submittedCount = players.filter(p => Boolean(picks[p.id])).length;
+
+      el.innerHTML = `
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+            <h2 style="margin:0;">📝 Pronostici — ${t.name}</h2>
+            <span class="badge ${submittedCount === players.length && players.length > 0 ? "green" : "gold"}">
+              Inviati: ${submittedCount} / ${players.length}
+            </span>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectedRound=${n};render()">Giornata ${n}</button>`).join("")}
+          </div>
+
+          <div class="muted" style="margin-top:10px;">
+            ${revealChoices
+              ? "Pronostici visibili: qui trovi le giocate inviate per la giornata selezionata."
+              : "Le giocate sono visibili in chiaro dopo la scadenza della giornata (o quando sblocchi l'Admin). Prima della scadenza vedi chi ha già inviato."
+            }
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Giocatore</th>
+                  <th>Stato</th>
+                  <th>Orario</th>
+                  <th>⚽ Più Gol</th>
+                  <th>🔒 Meno Gol</th>
+                  <th>🟨 Più Cart.</th>
+                  <th>Pt Giornata</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${players.map(p => {
+                  const pk = picks[p.id];
+                  if (!pk) {
+                    return `
+                      <tr>
+                        <td><strong>${p.name}</strong></td>
+                        <td><span class="badge red">Mancante</span></td>
+                        <td class="muted">-</td>
+                        <td class="muted">-</td>
+                        <td class="muted">-</td>
+                        <td class="muted">-</td>
+                        <td class="muted">0</td>
+                      </tr>
+                    `;
+                  }
+
+                  const ev = evalPlayerRound(rObj, p.id);
+                  const m1 = revealChoices ? matchLabel(getMatch(rObj, pk.moreGoals)) : "🔒 Nascosto";
+                  const m2 = revealChoices ? matchLabel(getMatch(rObj, pk.lessGoals)) : "🔒 Nascosto";
+                  const m3 = revealChoices ? matchLabel(getMatch(rObj, pk.moreCards)) : "🔒 Nascosto";
+                  const bombTag = ev.enPlein ? ` <span class="badge gold">+1 BOMB</span>` : "";
+
+                  return `
+                    <tr>
+                      <td><strong>${p.name}</strong></td>
+                      <td><span class="badge green">Inviata</span></td>
+                      <td class="muted">${formatTime(pk.updatedAt)}</td>
+                      <td>${m1}</td>
+                      <td>${m2}</td>
+                      <td>${m3}</td>
+                      <td><strong>${ev.total} pt</strong>${bombTag}</td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
     function renderJoin(el, t) {
       const reqs = Object.values(t.requests || []);
       el.innerHTML = `
@@ -655,15 +749,17 @@
         <div class="card">
           <h3>Stato Richieste</h3>
           ${reqs.length ? `
-            <table>
-              <thead><tr><th>Nome</th><th>Stato</th></tr></thead>
-              <tbody>
-                ${reqs.map(r => {
-                  const st = r.status === "approved" ? `<span class="badge green">Approvata</span>` : (r.status === "rejected" ? `<span class="badge red">Rifiutata</span>` : `<span class="badge gold">In attesa</span>`);
-                  return `<tr><td><strong>${r.name}</strong></td><td>${st}</td></tr>`;
-                }).join("")}
-              </tbody>
-            </table>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Nome</th><th>Stato</th></tr></thead>
+                <tbody>
+                  ${reqs.map(r => {
+                    const st = r.status === "approved" ? `<span class="badge green">Approvata</span>` : (r.status === "rejected" ? `<span class="badge red">Rifiutata</span>` : `<span class="badge gold">In attesa</span>`);
+                    return `<tr><td><strong>${r.name}</strong></td><td>${st}</td></tr>`;
+                  }).join("")}
+                </tbody>
+              </table>
+            </div>
           ` : `<div class="muted">Nessuna richiesta inviata finora.</div>`}
         </div>
       `;
@@ -679,22 +775,24 @@
           <div class="row" style="margin-bottom:10px;">
             ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectedRound=${n};render()">Giornata ${n}</button>`).join("")}
           </div>
-          <table>
-            <thead><tr><th>Partita</th><th>Stato</th><th>Gol</th><th>Pt Cart.</th><th>Esito</th></tr></thead>
-            <tbody>
-              ${matches.map(m => {
-                const tags = [];
-                if (rObj.bannedMatchId === m.id) tags.push(`<span class="badge gold">BAN</span>`);
-                if (win.ready && m.status === "played") {
-                  if (win.moreGoals.includes(m.id)) tags.push(`<span class="badge green">+Gol</span>`);
-                  if (win.lessGoals.includes(m.id)) tags.push(`<span class="badge gold">-Gol</span>`);
-                  if (win.moreCards.includes(m.id)) tags.push(`<span class="badge gold">+Cart.</span>`);
-                }
-                const st = m.status === "played" ? `<span class="badge green">Giocata</span>` : (m.status === "postponed" ? `<span class="badge red">Rinviata/Sospesa</span>` : "Programma");
-                return `<tr><td><strong>${matchLabel(m)}</strong></td><td>${st}</td><td>${m.status === "played" ? m.goals : "-"}</td><td>${m.status === "played" ? m.cardPoints : "-"}</td><td>${tags.join(" ") || "-"}</td></tr>`;
-              }).join("")}
-            </tbody>
-          </table>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Partita</th><th>Stato</th><th>Gol</th><th>Pt Cart.</th><th>Esito</th></tr></thead>
+              <tbody>
+                ${matches.map(m => {
+                  const tags = [];
+                  if (rObj.bannedMatchId === m.id) tags.push(`<span class="badge gold">BAN</span>`);
+                  if (win.ready && m.status === "played") {
+                    if (win.moreGoals.includes(m.id)) tags.push(`<span class="badge green">+Gol</span>`);
+                    if (win.lessGoals.includes(m.id)) tags.push(`<span class="badge gold">-Gol</span>`);
+                    if (win.moreCards.includes(m.id)) tags.push(`<span class="badge gold">+Cart.</span>`);
+                  }
+                  const st = m.status === "played" ? `<span class="badge green">Giocata</span>` : (m.status === "postponed" ? `<span class="badge red">Rinviata/Sospesa</span>` : "Programma");
+                  return `<tr><td><strong>${matchLabel(m)}</strong></td><td>${st}</td><td>${m.status === "played" ? m.goals : "-"}</td><td>${m.status === "played" ? m.cardPoints : "-"}</td><td>${tags.join(" ") || "-"}</td></tr>`;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
         </div>
       `;
     }
@@ -724,32 +822,34 @@
         <div class="card">
           <h2>🏆 Classifica — ${t.name}</h2>
           <div class="muted">Spareggi: 1) Punti Totali  2) En Plein (TriplettaBOMB)  3) Vittorie di Giornata</div>
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Giocatore</th>
-                <th>Base</th>
-                ${roundKeys.map(n => `<th>G${n}</th>`).join("")}
-                <th>En Plein</th>
-                <th>Vitt.</th>
-                <th>Totale</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows.map((r, i) => `
+          <div class="table-wrap">
+            <table>
+              <thead>
                 <tr>
-                  <td><strong>${i + 1}</strong></td>
-                  <td><strong>${r.name}</strong></td>
-                  <td>${r.base}</td>
-                  ${roundKeys.map(n => `<td>${r.perRound[n] ?? 0}</td>`).join("")}
-                  <td>${r.enPlein}</td>
-                  <td>${r.roundWins}</td>
-                  <td><span class="badge green">${r.total} pt</span></td>
+                  <th>#</th>
+                  <th>Giocatore</th>
+                  <th>Base</th>
+                  ${roundKeys.map(n => `<th>G${n}</th>`).join("")}
+                  <th>En Plein</th>
+                  <th>Vitt.</th>
+                  <th>Totale</th>
                 </tr>
-              `).join("")}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                ${rows.map((r, i) => `
+                  <tr>
+                    <td><strong>${i + 1}</strong></td>
+                    <td><strong>${r.name}</strong></td>
+                    <td>${r.base}</td>
+                    ${roundKeys.map(n => `<td>${r.perRound[n] ?? 0}</td>`).join("")}
+                    <td>${r.enPlein}</td>
+                    <td>${r.roundWins}</td>
+                    <td><span class="badge green">${r.total} pt</span></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
         </div>
       `;
     }
@@ -878,4 +978,3 @@
   </script>
 </body>
 </html>
-
