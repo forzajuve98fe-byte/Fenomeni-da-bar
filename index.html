@@ -1,206 +1,447 @@
 <!DOCTYPE html>
 <html lang="it">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fenomeni da Bar ⚽ — 1° Split (G9 & G10)</title>
-  <style>
-    :root {
-      --bg: #0a1017;
-      --surface: #132536;
-      --surface-2: #1b3045;
-      --border: rgba(148, 163, 184, 0.25);
-      --text: #edf5ff;
-      --muted: #9db7cf;
-      --accent: #22c55e;
-      --accent-strong: #16a34a;
-      --gold: #fbbf24;
-      --danger: #ef4444;
-      --info: #38bdf8;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fenomeni da Bar ⚽ — 1° Split (Giornate 9 & 10)</title>
+    <style>
+      :root {
+        --bg: #0a1017;
+        --bg-2: #111d2d;
+        --surface: #132536;
+        --surface-2: #1b3045;
+        --border: rgba(148, 163, 184, 0.26);
+        --text: #edf5ff;
+        --muted: #9db7cf;
+        --accent: #22c55e;
+        --accent-strong: #16a34a;
+        --gold: #fbbf24;
+        --danger: #ef4444;
+        --info: #38bdf8;
+      }
 
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.14), transparent 22%),
-                  radial-gradient(circle at right, rgba(34, 197, 94, 0.12), transparent 24%),
-                  var(--bg);
-      color: var(--text);
-      padding: 20px 14px 64px;
-    }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: radial-gradient(circle at top, rgba(56, 189, 248, 0.14), transparent 22%),
+                    radial-gradient(circle at right, rgba(34, 197, 94, 0.12), transparent 24%),
+                    var(--bg);
+        color: var(--text);
+      }
+      body { padding: 24px 16px 64px; }
+      .container { max-width: 1020px; margin: 0 auto; }
 
-    .container { max-width: 980px; margin: 0 auto; }
+      header {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.13), rgba(19, 37, 54, 1));
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 20px 18px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.22);
+      }
+      .brand h1 { margin: 0; font-size: clamp(1.45rem, 3vw, 2.15rem); letter-spacing: -0.03em; }
+      .brand p { margin: 4px 0 0; color: var(--muted); font-size: 0.9rem; }
 
-    header {
-      background: linear-gradient(135deg, rgba(34, 197, 94, 0.14), rgba(19, 37, 54, 1));
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 18px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
+      .header-right { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+      .status-pill {
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 8px 12px; border-radius: 999px; background: rgba(15, 23, 42, 0.58);
+        color: var(--text); border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600;
+      }
+      .status-pill.live {
+        color: #b9f7d4; border-color: rgba(34, 197, 94, 0.45); background: rgba(34, 197, 94, 0.14);
+      }
 
-    header h1 { margin: 0; font-size: clamp(1.4rem, 3vw, 2.1rem); }
-    header p { margin: 4px 0 0; color: var(--muted); font-size: 0.88rem; }
+      nav.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0 18px; }
+      nav.tabs button {
+        border: 1px solid var(--border); background: rgba(19, 37, 54, 0.9); color: var(--muted);
+        border-radius: 12px; padding: 10px 14px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      }
+      nav.tabs button.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #052e16; border-color: transparent;
+      }
 
-    .pill {
-      padding: 7px 12px;
-      border-radius: 999px;
-      background: rgba(34, 197, 94, 0.14);
-      border: 1px solid rgba(34, 197, 94, 0.4);
-      color: #bbf7d0;
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
+      .card {
+        background: linear-gradient(180deg, rgba(19, 37, 54, 0.96), rgba(17, 29, 45, 0.92));
+        border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 14px;
+        box-shadow: 0 10px 26px rgba(0,0,0,0.15);
+      }
+      .card h2 { font-size: 1.08rem; margin: 0 0 10px; }
+      .card h3 { font-size: 0.96rem; color: var(--info); margin: 14px 0 10px; }
+      .muted { color: var(--muted); font-size: 0.88rem; }
 
-    nav.tabs {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin: 16px 0;
-    }
+      .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+      .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+      .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
 
-    nav.tabs button {
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--muted);
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-weight: 700;
-      font-size: 0.88rem;
-      cursor: pointer;
-    }
+      label { display: block; font-size: 0.79rem; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+      input, select {
+        width: 100%; background: rgba(9, 17, 24, 0.85); color: var(--text); border: 1px solid var(--border);
+        border-radius: 10px; padding: 10px 12px; font-size: 0.92rem;
+      }
+      input:focus, select:focus {
+        outline: none; border-color: rgba(56, 189, 248, 0.65); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+      }
 
-    nav.tabs button.active {
-      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-      color: #052e16;
-      border-color: transparent;
-    }
+      .btn {
+        appearance: none; border: none; border-radius: 10px; padding: 10px 14px;
+        font-weight: 700; font-size: 0.9rem; cursor: pointer;
+      }
+      .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #062b12; }
+      .btn.gold { background: linear-gradient(135deg, #fbbf24, #d97706); color: #1f1300; }
+      .btn.secondary { background: rgba(148, 163, 184, 0.1); border: 1px solid var(--border); color: var(--text); }
+      .btn.danger { background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.38); color: #fecaca; }
+      .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 14px;
-    }
+      .row-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+      .round-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+      .round-button {
+        background: rgba(148, 163, 184, 0.08); color: var(--text); border: 1px solid var(--border);
+        border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 600;
+      }
+      .round-button.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #062b12; border-color: transparent;
+      }
 
-    .card h2 { margin: 0 0 10px; font-size: 1.08rem; }
-    .card h3 { margin: 14px 0 8px; font-size: 0.95rem; color: var(--info); }
-    .muted { color: var(--muted); font-size: 0.88rem; }
+      .match-box {
+        background: rgba(148, 163, 184, 0.06); border: 1px solid var(--border);
+        border-radius: 12px; padding: 12px; margin-bottom: 10px;
+      }
+      .match-box.banned {
+        border-color: rgba(251, 191, 36, 0.45);
+        background: rgba(251, 191, 36, 0.07);
+      }
+      .match-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+      .badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; }
+      .badge.gold { background: rgba(251, 191, 36, 0.16); color: #fde68a; border: 1px solid rgba(251, 191, 36, 0.36); }
+      .badge.green { background: rgba(34, 197, 94, 0.16); color: #b9f7d4; border: 1px solid rgba(34, 197, 94, 0.36); }
+      .badge.red { background: rgba(239, 68, 68, 0.16); color: #fecaca; border: 1px solid rgba(239, 68, 68, 0.36); }
+      .badge.info { background: rgba(56, 189, 248, 0.16); color: #bae6fd; border: 1px solid rgba(56, 189, 248, 0.36); }
 
-    label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
+      .ban-box {
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(239, 68, 68, 0.08));
+        border: 1px solid rgba(251, 191, 36, 0.38); border-radius: 12px; padding: 12px; margin-top: 10px;
+      }
 
-    input, select {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #091118;
-      color: var(--text);
-      font-size: 0.92rem;
-    }
+      table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+      th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+      th { color: var(--muted); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.05em; }
 
-    .btn {
-      border: none;
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-weight: 700;
-      font-size: 0.88rem;
-      cursor: pointer;
-    }
+      .alert { padding: 10px 12px; border-radius: 10px; margin-top: 12px; font-size: 0.88rem; }
+      .alert.ok { background: rgba(34, 197, 94, 0.14); border: 1px solid rgba(34, 197, 94, 0.38); color: #bbf7d0; }
+      .alert.err { background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.38); color: #fecaca; }
+      .alert.warn { background: rgba(251, 191, 36, 0.14); border: 1px solid rgba(251, 191, 36, 0.38); color: #fde68a; }
 
-    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #052e16; }
-    .btn.gold { background: linear-gradient(135deg, #fbbf24, #d97706); color: #1f1300; }
-    .btn.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
-    .btn.danger { background: rgba(239, 68, 68, 0.16); color: #fecaca; border: 1px solid rgba(239, 68, 68, 0.4); }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+      @media (max-width: 680px) {
+        body { padding: 16px 12px 52px; }
+        nav.tabs { overflow-x: auto; flex-wrap: nowrap; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="brand">
+          <h1>⚽ Fenomeni da Bar</h1>
+          <p id="headerSubtitle">1° Split • Giornate 9 &amp; 10 • 10 Partecipanti</p>
+        </div>
+        <div class="header-right">
+          <div id="syncBadge" class="status-pill">💾 Locale (Browser)</div>
+          <button type="button" class="btn secondary" id="btnSyncCloud">🔄 Sincronizza</button>
+        </div>
+      </header>
 
-    .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
+      <nav class="tabs" role="tablist">
+        <button type="button" class="active" data-tab="play">🎯 Gioca &amp; BAN</button>
+        <button type="button" data-tab="calendar">📅 Calendario</button>
+        <button type="button" data-tab="standings">🏆 Classifica</button>
+        <button type="button" data-tab="players">👥 Partecipanti</button>
+        <button type="button" data-tab="rules">📜 Regolamento</button>
+        <button type="button" data-tab="admin">⚙️ Admin</button>
+      </nav>
 
-    .ban-box {
-      background: rgba(251, 191, 36, 0.12);
-      border: 1px solid rgba(251, 191, 36, 0.36);
-      border-radius: 12px;
-      padding: 12px;
-      margin-top: 10px;
-    }
+      <main id="appContent"></main>
+    </div>
 
-    .badge {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 0.74rem;
-      font-weight: 700;
-    }
-    .badge.green { background: rgba(34, 197, 94, 0.16); color: #bbf7d0; }
-    .badge.gold { background: rgba(251, 191, 36, 0.16); color: #fde68a; }
-    .badge.red { background: rgba(239, 68, 68, 0.16); color: #fecaca; }
+    <script>
+      const STORAGE_KEY = "fenomeni_da_bar_split1_v2";
+      const SESSION_KEY = "fenomeni_da_bar_session_v2";
+      const ALLOWED_ROUNDS = [9, 10];
+      const MAX_PLAYERS = 20;
 
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-    th, td { text-align: left; padding: 9px 7px; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
-    th { color: var(--muted); font-size: 0.74rem; text-transform: uppercase; }
+      let feedbackMsg = null; // { type: "ok" | "err" | "warn", text: string }
 
-    .alert { padding: 10px 12px; border-radius: 10px; margin-top: 10px; font-size: 0.88rem; }
-    .alert.ok { background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #bbf7d0; }
-    .alert.err { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fecaca; }
-    .alert.warn { background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4); color: #fde68a; }
+      function setFeedback(type, text) {
+        feedbackMsg = { type, text };
+      }
 
-    .match-item {
-      background: rgba(148, 163, 184, 0.06);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 8px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <div>
-        <h1>⚽ Fenomeni da Bar</h1>
-        <p id="subHeader">1° Split • Giornate 9 &amp; 10 • 10 Partecipanti</p>
-      </div>
-      <div class="pill">GitHub Ready • PIN Personalizzabili</div>
-    </header>
+      function clearFeedback() {
+        feedbackMsg = null;
+      }
 
-    <nav class="tabs">
-      <button type="button" class="active" data-tab="play">🎯 Gioca &amp; BAN</button>
-      <button type="button" data-tab="calendar">📅 Calendario</button>
-      <button type="button" data-tab="standings">🏆 Classifica</button>
-      <button type="button" data-tab="players">👥 Partecipanti</button>
-      <button type="button" data-tab="admin">⚙️ Admin</button>
-    </nav>
+      function getSeedState() {
+        const players = [
+          { id: "p1", name: "Alex", pin: "1101", basePoints: 8 },
+          { id: "p2", name: "Cesare", pin: "1102", basePoints: 8 },
+          { id: "p3", name: "Leo/Nicolas", pin: "1103", basePoints: 7 },
+          { id: "p4", name: "Edoardo", pin: "1104", basePoints: 6 },
+          { id: "p5", name: "Manuel", pin: "1105", basePoints: 6 },
+          { id: "p6", name: "Enrico Maria", pin: "1106", basePoints: 5 },
+          { id: "p7", name: "Federico", pin: "1107", basePoints: 5 },
+          { id: "p8", name: "Devis", pin: "1108", basePoints: 4 },
+          { id: "p9", name: "Francesco", pin: "1109", basePoints: 2 },
+          { id: "p10", name: "Giampiero", pin: "1110", basePoints: 2 }
+        ];
 
-    <main id="app"></main>
-  </div>
+        return {
+          adminPin: "1234",
+          activeRound: 9,
+          firebaseUrl: "",
+          players,
+          rounds: {
+            9: {
+              deadline: "2026-11-21T15:00",
+              banDeadline: "2026-11-20T12:00",
+              banWinnerId: "p6", // Enrico Maria
+              bannedMatchId: "m901", // Atalanta - Inter
+              matches: [
+                { id: "m901", home: "Atalanta", away: "Inter", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m902", home: "Partita 2", away: "Ospite 2", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m903", home: "Partita 3", away: "Ospite 3", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m904", home: "Partita 4", away: "Ospite 4", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m905", home: "Partita 5", away: "Ospite 5", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m906", home: "Partita 6", away: "Ospite 6", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m907", home: "Partita 7", away: "Ospite 7", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m908", home: "Partita 8", away: "Ospite 8", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m909", home: "Partita 9", away: "Ospite 9", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m910", home: "Partita 10", away: "Ospite 10", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 }
+              ],
+              picks: {}
+            },
+            10: {
+              deadline: "",
+              banDeadline: "",
+              banWinnerId: null,
+              bannedMatchId: null,
+              matches: [
+                { id: "m1001", home: "Partita 1", away: "Ospite 1", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m1002", home: "Partita 2", away: "Ospite 2", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m1003", home: "Partita 3", away: "Ospite 3", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m1004", home: "Partita 4", away: "Ospite 4", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m1005", home: "Partita 5", away: "Ospite 5", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m1006", home: "Partita 6", away: "Ospite 6", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m1007", home: "Partita 7", away: "Ospite 7", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m1008", home: "Partita 8", away: "Ospite 8", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m1009", home: "Partita 9", away: "Ospite 9", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
+                { id: "m1010", home: "Partita 10", away: "Ospite 10", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 }
+              ],
+              picks: {}
+            }
+          }
+        };
+      }
 
-  <script>
-    const STORAGE_KEY = "fenomeni_da_bar_github_split1_v1";
-    const SESSION_KEY = "fenomeni_da_bar_github_session_v1";
-    const ROUNDS = [9, 10];
+      function normalizeState(raw) {
+        const seed = getSeedState();
+        const src = raw && typeof raw === "object" ? raw : seed;
 
-    let msg = null;
-    function setMsg(type, text) { msg = { type, text }; }
-    function clearMsg() { msg = null; }
+        const players = Array.isArray(src.players) && src.players.length
+          ? src.players.slice(0, MAX_PLAYERS).map((p, idx) => ({
+              id: p.id || `p${idx + 1}`,
+              name: p.name || `Giocatore ${idx + 1}`,
+              pin: String(p.pin ?? (1101 + idx)),
+              basePoints: Number(p.basePoints) || 0
+            }))
+          : seed.players;
 
-    function seedState() {
-      return {
-        adminPin: "1234",
-        adminPinChanged: false,
-        activeRound: 9,
-        players: [
-          { id: "p1", name: "Alex", pin: "1101", pinChanged: false, basePoints: 8 },
-          { id: "p2", name: "Cesare", pin: "1102", pinChanged: false, basePoints: 8 },
-          { id: "p3", name: "Leo/Nicolas",
-    
+        const rounds = {};
+        for (const rNum of ALLOWED_ROUNDS) {
+          const rSrc = (src.rounds && src.rounds[rNum]) || seed.rounds[rNum];
+          rounds[rNum] = {
+            deadline: rSrc.deadline || "",
+            banDeadline: rSrc.banDeadline || "",
+            banWinnerId: rSrc.banWinnerId || null,
+            bannedMatchId: rSrc.bannedMatchId || null,
+            matches: Array.isArray(rSrc.matches) ? rSrc.matches : seed.rounds[rNum].matches,
+            picks: rSrc.picks && typeof rSrc.picks === "object" ? rSrc.picks : {}
+          };
+        }
+
+        const activeRound = ALLOWED_ROUNDS.includes(Number(src.activeRound)) ? Number(src.activeRound) : 9;
+
+        return {
+          adminPin: String(src.adminPin || "1234"),
+          activeRound,
+          firebaseUrl: String(src.firebaseUrl || ""),
+          players,
+          rounds
+        };
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return getSeedState();
+          return normalizeState(JSON.parse(raw));
+        } catch {
+          return getSeedState();
+        }
+      }
+
+      function loadSession() {
+        try {
+          const raw = localStorage.getItem(SESSION_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          return parsed.playerId || null;
+        } catch {
+          return null;
+        }
+      }
+
+      let state = loadState();
+      let activePlayerId = loadSession();
+      if (activePlayerId && !state.players.some(p => p.id === activePlayerId)) {
+        activePlayerId = null;
+      }
+
+      let currentTab = "play";
+      let adminUnlocked = false;
+
+      function saveLocal() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+
+      function saveSession() {
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ playerId: activePlayerId }));
+      }
+
+      function getFirebaseEndpoint() {
+        const clean = (state.firebaseUrl || "").trim().replace(/\/+$/, "");
+        if (!clean) return "";
+        return clean.endsWith(".json") ? clean : `${clean}/fenomeni_da_bar.json`;
+      }
+
+      async function syncWithFirebase(pushCurrent = false) {
+        const url = getFirebaseEndpoint();
+        const badge = document.getElementById("syncBadge");
+        if (!url) {
+          badge.className = "status-pill";
+          badge.textContent = "💾 Locale (Browser)";
+          return;
+        }
+        try {
+          if (pushCurrent) {
+            const res = await fetch(url, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(state)
+            });
+            if (!res.ok) throw new Error("Errore scrittura cloud");
+            badge.className = "status-pill live";
+            badge.textContent = "☁️ Sincronizzato";
+          } else {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("Errore lettura cloud");
+            const data = await res.json();
+            if (data && typeof data === "object") {
+              state = normalizeState(data);
+              saveLocal();
+              badge.className = "status-pill live";
+              badge.textContent = "☁️ Online";
+              renderApp();
+            }
+          }
+        } catch {
+          badge.className = "status-pill";
+          badge.textContent = "⚠️ Offline / Errore Cloud";
+        }
+      }
+
+      async function persistState() {
+        saveLocal();
+        await syncWithFirebase(true);
+      }
+
+      function getPlayer(id) {
+        return state.players.find(p => p.id === id) || null;
+      }
+
+      function getMatch(roundNum, matchId) {
+        const r = state.rounds[roundNum];
+        if (!r) return null;
+        return r.matches.find(m => m.id === matchId) || null;
+      }
+
+      function matchLabel(m) {
+        if (!m) return "-";
+        return `${m.home} - ${m.away}`;
+      }
+
+      function isRoundClosed(roundNum) {
+        const dl = state.rounds[roundNum]?.deadline;
+        if (!dl) return false;
+        const t = new Date(dl).getTime();
+        return !Number.isNaN(t) && Date.now() > t;
+      }
+
+      function isBanClosed(roundNum) {
+        const bdl = state.rounds[roundNum]?.banDeadline;
+        if (!bdl) return false;
+        const t = new Date(bdl).getTime();
+        return !Number.isNaN(t) && Date.now() > t;
+      }
+
+      function getCategoryWinners(roundNum) {
+        const played = (state.rounds[roundNum]?.matches || []).filter(m => m.status === "played");
+        if (!played.length) {
+          return { hasResults: false, moreGoalsIds: [], lessGoalsIds: [], moreCardsIds: [] };
+        }
+        const maxGoals = Math.max(...played.map(m => Number(m.goals) || 0));
+        const minGoals = Math.min(...played.map(m => Number(m.goals) || 0));
+        const maxCards = Math.max(...played.map(m => Number(m.cardPoints) || 0));
+
+        return {
+          hasResults: true,
+          moreGoalsIds: played.filter(m => (Number(m.goals) || 0) === maxGoals).map(m => m.id),
+          lessGoalsIds: played.filter(m => (Number(m.goals) || 0) === minGoals).map(m => m.id),
+          moreCardsIds: played.filter(m => (Number(m.cardPoints) || 0) === maxCards).map(m => m.id)
+        };
+      }
+
+      function evaluatePlayerRound(roundNum, playerId) {
+        const pick = state.rounds[roundNum]?.picks?.[playerId];
+        if (!pick) {
+          return { hasPick: false, pending: true, hits: 0, bonus: 0, total: 0, enPlein: false };
+        }
+        const win = getCategoryWinners(roundNum);
+        if (!win.hasResults) {
+          return { hasPick: true, pending: true, hits: 0, bonus: 0, total: 0, enPlein: false };
+        }
+
+        let hits = 0;
+        const mMore = getMatch(roundNum, pick.moreGoals);
+        const mLess = getMatch(roundNum, pick.lessGoals);
+        const mCards = getMatch(roundNum, pick.moreCards);
+
+        // Partite rinviate/sospese valgono 0 punti
+        if (mMore && mMore.status === "played" && win.moreGoalsIds.includes(mMore.id)) hits++;
+        if (mLess && mLess.status === "played" && win.lessGoalsIds.includes(mLess.id)) hits++;
+        if (mCards && mCards.status === "played" && win.moreCardsIds.includes(mCards.id)) hits++;
+
+        const enPlein = hits === 3;
+        const bonus = enPlein ? 1 : 0;
+        return { hasPick: true, pending: false, hits, bonus, total: hits + bonus, enPlein };
+      }
+
+      function getRoundSoloWinner(roundNum) {
+        const win = getCategoryWinners(roundNum);
+        if (!win.hasResults) {
+        
