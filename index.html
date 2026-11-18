@@ -1,447 +1,881 @@
 <!DOCTYPE html>
 <html lang="it">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fenomeni da Bar ⚽ — 1° Split (Giornate 9 & 10)</title>
-    <style>
-      :root {
-        --bg: #0a1017;
-        --bg-2: #111d2d;
-        --surface: #132536;
-        --surface-2: #1b3045;
-        --border: rgba(148, 163, 184, 0.26);
-        --text: #edf5ff;
-        --muted: #9db7cf;
-        --accent: #22c55e;
-        --accent-strong: #16a34a;
-        --gold: #fbbf24;
-        --danger: #ef4444;
-        --info: #38bdf8;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fenomeni da Bar — Multi-Torneo</title>
+  <style>
+    :root {
+      --bg: #081018;
+      --surface: #122232;
+      --surface-2: #192e43;
+      --border: rgba(148, 163, 184, 0.22);
+      --text: #eef6ff;
+      --muted: #9bb6cf;
+      --accent: #22c55e;
+      --accent-dark: #15803d;
+      --gold: #fbbf24;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top, rgba(34, 197, 94, 0.12), transparent 28%), var(--bg);
+      color: var(--text);
+      padding: 16px 12px 64px;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    h1, h2, h3 { margin: 0 0 10px; }
+    .muted { color: var(--muted); font-size: 0.88rem; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    button, .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 9px 13px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+    .tabs button { background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+    .tabs button.active { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #052e16; border-color: transparent; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #052e16; }
+    .btn.gold { background: linear-gradient(135deg, #fbbf24, #d97706); color: #1f1300; }
+    .btn.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn.danger { background: rgba(239, 68, 68, 0.16); color: #fecaca; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-      * { box-sizing: border-box; }
-      html, body {
-        margin: 0;
-        min-height: 100%;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        background: radial-gradient(circle at top, rgba(56, 189, 248, 0.14), transparent 22%),
-                    radial-gradient(circle at right, rgba(34, 197, 94, 0.12), transparent 24%),
-                    var(--bg);
-        color: var(--text);
-      }
-      body { padding: 24px 16px 64px; }
-      .container { max-width: 1020px; margin: 0 auto; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; }
 
-      header {
-        background: linear-gradient(135deg, rgba(34, 197, 94, 0.13), rgba(19, 37, 54, 1));
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 20px 18px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.22);
-      }
-      .brand h1 { margin: 0; font-size: clamp(1.45rem, 3vw, 2.15rem); letter-spacing: -0.03em; }
-      .brand p { margin: 4px 0 0; color: var(--muted); font-size: 0.9rem; }
+    label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+    input, select {
+      width: 100%;
+      padding: 9px 11px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #09121a;
+      color: var(--text);
+      font-size: 0.92rem;
+    }
 
-      .header-right { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-      .status-pill {
-        display: inline-flex; align-items: center; justify-content: center;
-        padding: 8px 12px; border-radius: 999px; background: rgba(15, 23, 42, 0.58);
-        color: var(--text); border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600;
-      }
-      .status-pill.live {
-        color: #b9f7d4; border-color: rgba(34, 197, 94, 0.45); background: rgba(34, 197, 94, 0.14);
-      }
+    .ban-box {
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      border-radius: 12px;
+      padding: 11px;
+      margin-top: 10px;
+    }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; }
+    .badge.green { background: rgba(34, 197, 94, 0.16); color: #bbf7d0; }
+    .badge.gold { background: rgba(251, 191, 36, 0.16); color: #fde68a; }
+    .badge.red { background: rgba(239, 68, 68, 0.16); color: #fecaca; }
 
-      nav.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0 18px; }
-      nav.tabs button {
-        border: 1px solid var(--border); background: rgba(19, 37, 54, 0.9); color: var(--muted);
-        border-radius: 12px; padding: 10px 14px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
-      }
-      nav.tabs button.active {
-        background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #052e16; border-color: transparent;
-      }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+    th { color: var(--muted); font-size: 0.74rem; text-transform: uppercase; }
 
-      .card {
-        background: linear-gradient(180deg, rgba(19, 37, 54, 0.96), rgba(17, 29, 45, 0.92));
-        border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 14px;
-        box-shadow: 0 10px 26px rgba(0,0,0,0.15);
-      }
-      .card h2 { font-size: 1.08rem; margin: 0 0 10px; }
-      .card h3 { font-size: 0.96rem; color: var(--info); margin: 14px 0 10px; }
-      .muted { color: var(--muted); font-size: 0.88rem; }
-
-      .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-      .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
-      .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
-
-      label { display: block; font-size: 0.79rem; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
-      input, select {
-        width: 100%; background: rgba(9, 17, 24, 0.85); color: var(--text); border: 1px solid var(--border);
-        border-radius: 10px; padding: 10px 12px; font-size: 0.92rem;
-      }
-      input:focus, select:focus {
-        outline: none; border-color: rgba(56, 189, 248, 0.65); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
-      }
-
-      .btn {
-        appearance: none; border: none; border-radius: 10px; padding: 10px 14px;
-        font-weight: 700; font-size: 0.9rem; cursor: pointer;
-      }
-      .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #062b12; }
-      .btn.gold { background: linear-gradient(135deg, #fbbf24, #d97706); color: #1f1300; }
-      .btn.secondary { background: rgba(148, 163, 184, 0.1); border: 1px solid var(--border); color: var(--text); }
-      .btn.danger { background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.38); color: #fecaca; }
-      .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-
-      .row-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-      .round-picker { display: flex; flex-wrap: wrap; gap: 8px; }
-      .round-button {
-        background: rgba(148, 163, 184, 0.08); color: var(--text); border: 1px solid var(--border);
-        border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 600;
-      }
-      .round-button.active {
-        background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #062b12; border-color: transparent;
-      }
-
-      .match-box {
-        background: rgba(148, 163, 184, 0.06); border: 1px solid var(--border);
-        border-radius: 12px; padding: 12px; margin-bottom: 10px;
-      }
-      .match-box.banned {
-        border-color: rgba(251, 191, 36, 0.45);
-        background: rgba(251, 191, 36, 0.07);
-      }
-      .match-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-
-      .badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; }
-      .badge.gold { background: rgba(251, 191, 36, 0.16); color: #fde68a; border: 1px solid rgba(251, 191, 36, 0.36); }
-      .badge.green { background: rgba(34, 197, 94, 0.16); color: #b9f7d4; border: 1px solid rgba(34, 197, 94, 0.36); }
-      .badge.red { background: rgba(239, 68, 68, 0.16); color: #fecaca; border: 1px solid rgba(239, 68, 68, 0.36); }
-      .badge.info { background: rgba(56, 189, 248, 0.16); color: #bae6fd; border: 1px solid rgba(56, 189, 248, 0.36); }
-
-      .ban-box {
-        background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(239, 68, 68, 0.08));
-        border: 1px solid rgba(251, 191, 36, 0.38); border-radius: 12px; padding: 12px; margin-top: 10px;
-      }
-
-      table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-      th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-      th { color: var(--muted); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.05em; }
-
-      .alert { padding: 10px 12px; border-radius: 10px; margin-top: 12px; font-size: 0.88rem; }
-      .alert.ok { background: rgba(34, 197, 94, 0.14); border: 1px solid rgba(34, 197, 94, 0.38); color: #bbf7d0; }
-      .alert.err { background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.38); color: #fecaca; }
-      .alert.warn { background: rgba(251, 191, 36, 0.14); border: 1px solid rgba(251, 191, 36, 0.38); color: #fde68a; }
-
-      @media (max-width: 680px) {
-        body { padding: 16px 12px 52px; }
-        nav.tabs { overflow-x: auto; flex-wrap: nowrap; }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <header>
-        <div class="brand">
+    .msg { padding: 10px 12px; border-radius: 10px; margin-top: 10px; font-size: 0.88rem; }
+    .msg.ok { background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #bbf7d0; }
+    .msg.err { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fecaca; }
+    .msg.warn { background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4); color: #fde68a; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+        <div>
           <h1>⚽ Fenomeni da Bar</h1>
-          <p id="headerSubtitle">1° Split • Giornate 9 &amp; 10 • 10 Partecipanti</p>
+          <div class="muted" id="syncStatus">Connessione a Firebase Realtime Database in corso...</div>
         </div>
-        <div class="header-right">
-          <div id="syncBadge" class="status-pill">💾 Locale (Browser)</div>
-          <button type="button" class="btn secondary" id="btnSyncCloud">🔄 Sincronizza</button>
+        <div style="min-width:210px;">
+          <label>Torneo selezionato</label>
+          <select id="tournamentSelect" onchange="onTournamentChange(this.value)"></select>
         </div>
-      </header>
+      </div>
 
-      <nav class="tabs" role="tablist">
-        <button type="button" class="active" data-tab="play">🎯 Gioca &amp; BAN</button>
-        <button type="button" data-tab="calendar">📅 Calendario</button>
-        <button type="button" data-tab="standings">🏆 Classifica</button>
-        <button type="button" data-tab="players">👥 Partecipanti</button>
-        <button type="button" data-tab="rules">📜 Regolamento</button>
-        <button type="button" data-tab="admin">⚙️ Admin</button>
-      </nav>
-
-      <main id="appContent"></main>
+      <div class="tabs">
+        <button type="button" id="tab-play" class="active" onclick="switchTab('play')">🎯 Gioca &amp; BAN</button>
+        <button type="button" id="tab-join" onclick="switchTab('join')">🙋 Richiedi Accesso</button>
+        <button type="button" id="tab-cal" onclick="switchTab('cal')">📅 Calendario</button>
+        <button type="button" id="tab-rank" onclick="switchTab('rank')">🏆 Classifica</button>
+        <button type="button" id="tab-admin" onclick="switchTab('admin')">⚙️ Admin</button>
+      </div>
+      <div id="banner"></div>
     </div>
 
-    <script>
-      const STORAGE_KEY = "fenomeni_da_bar_split1_v2";
-      const SESSION_KEY = "fenomeni_da_bar_session_v2";
-      const ALLOWED_ROUNDS = [9, 10];
-      const MAX_PLAYERS = 20;
+    <div id="content"></div>
+  </div>
 
-      let feedbackMsg = null; // { type: "ok" | "err" | "warn", text: string }
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-      function setFeedback(type, text) {
-        feedbackMsg = { type, text };
-      }
+    const firebaseConfig = {
+      apiKey: "AIzaSyCFVa44IA7YTTvmE8qtGre09dkC7-fzTK4",
+      authDomain: "fenomeni-da-bar.firebaseapp.com",
+      databaseURL: "https://fenomeni-da-bar-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "fenomeni-da-bar",
+      storageBucket: "fenomeni-da-bar.firebasestorage.app",
+      messagingSenderId: "883901640328",
+      appId: "1:883901640328:web:8980c229e2f5f94f3c793d"
+    };
 
-      function clearFeedback() {
-        feedbackMsg = null;
-      }
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const rootRef = ref(db, "platform");
 
-      function getSeedState() {
-        const players = [
-          { id: "p1", name: "Alex", pin: "1101", basePoints: 8 },
-          { id: "p2", name: "Cesare", pin: "1102", basePoints: 8 },
-          { id: "p3", name: "Leo/Nicolas", pin: "1103", basePoints: 7 },
-          { id: "p4", name: "Edoardo", pin: "1104", basePoints: 6 },
-          { id: "p5", name: "Manuel", pin: "1105", basePoints: 6 },
-          { id: "p6", name: "Enrico Maria", pin: "1106", basePoints: 5 },
-          { id: "p7", name: "Federico", pin: "1107", basePoints: 5 },
-          { id: "p8", name: "Devis", pin: "1108", basePoints: 4 },
-          { id: "p9", name: "Francesco", pin: "1109", basePoints: 2 },
-          { id: "p10", name: "Giampiero", pin: "1110", basePoints: 2 }
-        ];
+    const BASE_PLAYERS = [
+      { id: "p1", name: "Alex", pin: "1101", pinChanged: false, basePoints: 8, status: "approved" },
+      { id: "p2", name: "Cesare", pin: "1102", pinChanged: false, basePoints: 8, status: "approved" },
+      { id: "p3", name: "Leo/Nicolas", pin: "1103", pinChanged: false, basePoints: 7, status: "approved" },
+      { id: "p4", name: "Edoardo", pin: "1104", pinChanged: false, basePoints: 6, status: "approved" },
+      { id: "p5", name: "Manuel", pin: "1105", pinChanged: false, basePoints: 6, status: "approved" },
+      { id: "p6", name: "Enrico Maria", pin: "1106", pinChanged: false, basePoints: 5, status: "approved" },
+      { id: "p7", name: "Federico", pin: "1107", pinChanged: false, basePoints: 5, status: "approved" },
+      { id: "p8", name: "Devis", pin: "1108", pinChanged: false, basePoints: 4, status: "approved" },
+      { id: "p9", name: "Francesco", pin: "1109", pinChanged: false, basePoints: 2, status: "approved" },
+      { id: "p10", name: "Giampiero", pin: "1110", pinChanged: false, basePoints: 2, status: "approved" }
+    ];
 
-        return {
-          adminPin: "1234",
-          activeRound: 9,
-          firebaseUrl: "",
-          players,
-          rounds: {
-            9: {
-              deadline: "2026-11-21T15:00",
-              banDeadline: "2026-11-20T12:00",
-              banWinnerId: "p6", // Enrico Maria
-              bannedMatchId: "m901", // Atalanta - Inter
-              matches: [
-                { id: "m901", home: "Atalanta", away: "Inter", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m902", home: "Partita 2", away: "Ospite 2", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m903", home: "Partita 3", away: "Ospite 3", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m904", home: "Partita 4", away: "Ospite 4", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m905", home: "Partita 5", away: "Ospite 5", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m906", home: "Partita 6", away: "Ospite 6", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m907", home: "Partita 7", away: "Ospite 7", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m908", home: "Partita 8", away: "Ospite 8", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m909", home: "Partita 9", away: "Ospite 9", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m910", home: "Partita 10", away: "Ospite 10", time: "Giornata 9", status: "scheduled", goals: 0, cardPoints: 0 }
-              ],
-              picks: {}
-            },
-            10: {
-              deadline: "",
-              banDeadline: "",
-              banWinnerId: null,
-              bannedMatchId: null,
-              matches: [
-                { id: "m1001", home: "Partita 1", away: "Ospite 1", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m1002", home: "Partita 2", away: "Ospite 2", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m1003", home: "Partita 3", away: "Ospite 3", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m1004", home: "Partita 4", away: "Ospite 4", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m1005", home: "Partita 5", away: "Ospite 5", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m1006", home: "Partita 6", away: "Ospite 6", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m1007", home: "Partita 7", away: "Ospite 7", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m1008", home: "Partita 8", away: "Ospite 8", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m1009", home: "Partita 9", away: "Ospite 9", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 },
-                { id: "m1010", home: "Partita 10", away: "Ospite 10", time: "Giornata 10", status: "scheduled", goals: 0, cardPoints: 0 }
-              ],
-              picks: {}
+    function makeRoundMatches(rNum, firstMatchHome, firstMatchAway) {
+      return Array.from({ length: 10 }, (_, i) => ({
+        id: `m${rNum}_${String(i + 1).padStart(2, "0")}`,
+        home: i === 0 ? firstMatchHome : `G${rNum} Casa ${i + 1}`,
+        away: i === 0 ? firstMatchAway : `G${rNum} Ospite ${i + 1}`,
+        status: "scheduled",
+        goals: 0,
+        cardPoints: 0
+      }));
+    }
+
+    function createSeedPlatform() {
+      return {
+        adminPin: "1234",
+        adminPinChanged: false,
+        activeTournamentId: "split_1",
+        tournaments: {
+          split_1: {
+            id: "split_1",
+            name: "1° Split (Giornate 9 & 10)",
+            activeRound: 9,
+            players: BASE_PLAYERS,
+            requests: [],
+            rounds: {
+              9: {
+                deadline: "",
+                banDeadline: "",
+                banWinnerId: "p6",
+                bannedMatchId: "m9_01",
+                matches: makeRoundMatches(9, "Atalanta", "Inter"),
+                picks: {}
+              },
+              10: {
+                deadline: "",
+                banDeadline: "",
+                banWinnerId: null,
+                bannedMatchId: null,
+                matches: makeRoundMatches(10, "G10 Casa 1", "G10 Ospite 1"),
+                picks: {}
+              }
             }
           }
+        }
+      };
+    }
+
+    let state = null;
+    let currentTournamentId = "split_1";
+    let currentTab = "play";
+    let selectedRound = 9;
+    let loggedPlayer = null;
+    let adminUnlocked = false;
+    let seededOnce = false;
+
+    function notify(type, text) {
+      document.getElementById("banner").innerHTML = `<div class="msg ${type}">${text}</div>`;
+    }
+    function clearNotify() {
+      document.getElementById("banner").innerHTML = "";
+    }
+
+    async function savePlatform(nextState) {
+      await set(rootRef, nextState);
+    }
+
+    function getTournament() {
+      if (!state || !state.tournaments) return null;
+      return state.tournaments[currentTournamentId] || Object.values(state.tournaments)[0] || null;
+    }
+
+    function getApprovedPlayers(t) {
+      return Object.values(t.players || {}).filter(p => p.status !== "rejected");
+    }
+
+    function getMatch(rObj, mId) {
+      return Object.values(rObj.matches || {}).find(m => m.id === mId) || null;
+    }
+
+    function matchLabel(m) {
+      return m ? `${m.home} - ${m.away}` : "-";
+    }
+
+    function isRoundClosed(rObj) {
+      if (!rObj || !rObj.deadline) return false;
+      const ts = new Date(rObj.deadline).getTime();
+      return !Number.isNaN(ts) && Date.now() > ts;
+    }
+
+    function getCategoryWinners(rObj) {
+      const played = Object.values(rObj.matches || {}).filter(m => m.status === "played");
+      if (!played.length) return { ready: false, moreGoals: [], lessGoals: [], moreCards: [] };
+      const maxG = Math.max(...played.map(m => Number(m.goals) || 0));
+      const minG = Math.min(...played.map(m => Number(m.goals) || 0));
+      const maxC = Math.max(...played.map(m => Number(m.cardPoints) || 0));
+      return {
+        ready: true,
+        moreGoals: played.filter(m => (Number(m.goals) || 0) === maxG).map(m => m.id),
+        lessGoals: played.filter(m => (Number(m.goals) || 0) === minG).map(m => m.id),
+        moreCards: played.filter(m => (Number(m.cardPoints) || 0) === maxC).map(m => m.id)
+      };
+    }
+
+    function evalPlayerRound(rObj, playerId) {
+      const pick = rObj?.picks?.[playerId];
+      const win = getCategoryWinners(rObj);
+      if (!pick || !win.ready) return { hits: 0, total: 0, enPlein: false };
+      let hits = 0;
+      const m1 = getMatch(rObj, pick.moreGoals);
+      const m2 = getMatch(rObj, pick.lessGoals);
+      const m3 = getMatch(rObj, pick.moreCards);
+      if (m1 && m1.status === "played" && win.moreGoals.includes(m1.id)) hits++;
+      if (m2 && m2.status === "played" && win.lessGoals.includes(m2.id)) hits++;
+      if (m3 && m3.status === "played" && win.moreCards.includes(m3.id)) hits++;
+      const enPlein = hits === 3;
+      return { hits, total: hits + (enPlein ? 1 : 0), enPlein };
+    }
+
+    function getRoundSoloWinner(t, rNum) {
+      const rObj = t.rounds?.[rNum];
+      const win = getCategoryWinners(rObj);
+      if (!rObj || !win.ready) return null;
+      const players = getApprovedPlayers(t);
+      const scores = players.map(p => ({ id: p.id, name: p.name, pts: evalPlayerRound(rObj, p.id).total }));
+      const maxPts = Math.max(...scores.map(s => s.pts));
+      if (maxPts <= 0) return null;
+      const top = scores.filter(s => s.pts === maxPts);
+      return top.length === 1 ? top[0] : null;
+    }
+
+    window.switchTab = function(tab) {
+      currentTab = tab;
+      clearNotify();
+      ["play", "join", "cal", "rank", "admin"].forEach(k => {
+        document.getElementById("tab-" + k).classList.toggle("active", k === tab);
+      });
+      render();
+    };
+
+    window.onTournamentChange = function(id) {
+      currentTournamentId = id;
+      loggedPlayer = null;
+      clearNotify();
+      render();
+    };
+
+    window.loginPlayer = function() {
+      const t = getTournament();
+      const pId = document.getElementById("loginPlayerSel").value;
+      const pin = (document.getElementById("loginPinInput").value || "").trim();
+      const player = Object.values(t.players || {}).find(p => p.id === pId);
+      if (!player || String(player.pin) !== pin) {
+        notify("err", "Giocatore o PIN non valido.");
+        return;
+      }
+      loggedPlayer = { ...player };
+      notify(
+        player.pinChanged ? "ok" : "warn",
+        player.pinChanged ? `Ciao ${player.name}!` : `Primo accesso di ${player.name}: imposta subito il tuo nuovo PIN personale qui sotto.`
+      );
+      render();
+    };
+
+    window.logoutPlayer = function() {
+      loggedPlayer = null;
+      clearNotify();
+      render();
+    };
+
+    window.changePlayerPin = async function() {
+      const n1 = (document.getElementById("newPlayerPin").value || "").trim();
+      const n2 = (document.getElementById("confirmPlayerPin").value || "").trim();
+      if (n1.length < 4) return notify("err", "Il nuovo PIN deve avere almeno 4 caratteri.");
+      if (n1 !== n2) return notify("err", "I due PIN non coincidono.");
+      const next = structuredClone(state);
+      const t = next.tournaments[currentTournamentId];
+      t.players = Object.values(t.players || {}).map(p => p.id === loggedPlayer.id ? { ...p, pin: n1, pinChanged: true } : p);
+      await savePlatform(next);
+      loggedPlayer.pin = n1;
+      loggedPlayer.pinChanged = true;
+      notify("ok", "Nuovo PIN personale salvato!");
+    };
+
+    window.savePicks = async function() {
+      const t = getTournament();
+      const rObj = t.rounds[selectedRound];
+      if (isRoundClosed(rObj)) return notify("err", "Scadenza pronostici superata per questa giornata.");
+
+      const moreGoals = document.getElementById("pickMoreGoals").value;
+      const lessGoals = document.getElementById("pickLessGoals").value;
+      const moreCards = document.getElementById("pickMoreCards").value;
+      if (!moreGoals || !lessGoals || !moreCards) {
+        return notify("err", "Seleziona una partita per tutte e 3 le categorie.");
+      }
+
+      const canUseBan = Boolean(rObj.bannedMatchId && rObj.banWinnerId === loggedPlayer.id);
+      if (rObj.bannedMatchId && !canUseBan && [moreGoals, lessGoals, moreCards].includes(rObj.bannedMatchId)) {
+        return notify("err", "La partita bannata non è selezionabile in questo turno.");
+      }
+
+      const next = structuredClone(state);
+      next.tournaments[currentTournamentId].rounds[selectedRound].picks = {
+        ...(next.tournaments[currentTournamentId].rounds[selectedRound].picks || {}),
+        [loggedPlayer.id]: { moreGoals, lessGoals, moreCards, updatedAt: new Date().toISOString() }
+      };
+      await savePlatform(next);
+      notify("ok", "Pronostici salvati in tempo reale!");
+    };
+
+    window.saveBan = async function(targetRound) {
+      const matchId = document.getElementById("banMatchSel").value || null;
+      const next = structuredClone(state);
+      const rObj = next.tournaments[currentTournamentId].rounds[targetRound];
+      if (rObj.banWinnerId !== loggedPlayer.id) {
+        return notify("err", "Non hai diritto al BAN per questa giornata.");
+      }
+      rObj.bannedMatchId = matchId;
+      await savePlatform(next);
+      notify("ok", `BAN Giornata ${targetRound} aggiornato!`);
+    };
+
+    window.submitJoinRequest = async function() {
+      const name = (document.getElementById("reqName").value || "").trim();
+      const desiredPin = (document.getElementById("reqPin").value || "").trim();
+      const note = (document.getElementById("reqNote").value || "").trim();
+      if (!name) return notify("err", "Inserisci il tuo nome o soprannome.");
+      if (desiredPin.length < 4) return notify("err", "Scegli un PIN di almeno 4 caratteri.");
+
+      const next = structuredClone(state);
+      const t = next.tournaments[currentTournamentId];
+      const existingReqs = Object.values(t.requests || {});
+      existingReqs.push({
+        id: "req_" + Date.now(),
+        name,
+        desiredPin,
+        note,
+        status: "pending",
+        createdAt: new Date().toISOString()
+      });
+      t.requests = existingReqs;
+      await savePlatform(next);
+      notify("ok", "Richiesta inviata! Ora l'Admin potrà approvarla dal pannello Admin.");
+      document.getElementById("reqName").value = "";
+      document.getElementById("reqPin").value = "";
+      document.getElementById("reqNote").value = "";
+    };
+
+    window.unlockAdmin = function() {
+      const pin = (document.getElementById("adminPinInput").value || "").trim();
+      if (pin !== String(state.adminPin)) {
+        return notify("err", "PIN Admin non valido.");
+      }
+      adminUnlocked = true;
+      notify(state.adminPinChanged ? "ok" : "warn", state.adminPinChanged ? "Pannello Admin sbloccato." : "Primo accesso Admin: puoi reimpostare subito il PIN Admin.");
+      render();
+    };
+
+    window.changeAdminPin = async function() {
+      const n1 = (document.getElementById("newAdminPin").value || "").trim();
+      const n2 = (document.getElementById("confirmAdminPin").value || "").trim();
+      if (n1.length < 4) return notify("err", "Il nuovo PIN Admin deve avere almeno 4 caratteri.");
+      if (n1 !== n2) return notify("err", "I due PIN Admin non coincidono.");
+      const next = structuredClone(state);
+      next.adminPin = n1;
+      next.adminPinChanged = true;
+      await savePlatform(next);
+      notify("ok", "Nuovo PIN Admin salvato!");
+    };
+
+    window.decideRequest = async function(reqId, approve) {
+      const pinVal = (document.getElementById("approvePin_" + reqId)?.value || "").trim();
+      const basePts = Number(document.getElementById("approvePts_" + reqId)?.value) || 0;
+      const next = structuredClone(state);
+      const t = next.tournaments[currentTournamentId];
+      const reqs = Object.values(t.requests || []);
+      const target = reqs.find(r => r.id === reqId);
+      if (!target) return;
+
+      if (approve) {
+        const players = Object.values(t.players || {});
+        players.push({
+          id: "p_" + Date.now(),
+          name: target.name,
+          pin: pinVal || target.desiredPin || "1200",
+          pinChanged: false,
+          basePoints: basePts,
+          status: "approved"
+        });
+        t.players = players;
+        target.status = "approved";
+      } else {
+        target.status = "rejected";
+      }
+      t.requests = reqs;
+      await savePlatform(next);
+      notify("ok", approve ? `${target.name} approvato ed aggiunto al torneo!` : `Richiesta di ${target.name} rifiutata.`);
+    };
+
+    window.createTournament = async function() {
+      const name = (document.getElementById("newTourneyName").value || "").trim();
+      const roundsCount = Number(document.getElementById("newTourneyRounds").value) || 2;
+      if (!name) return notify("err", "Inserisci il nome del nuovo torneo.");
+
+      const id = "tourney_" + Date.now();
+      const rounds = {};
+      for (let i = 1; i <= roundsCount; i++) {
+        rounds[i] = {
+          deadline: "",
+          banDeadline: "",
+          banWinnerId: null,
+          bannedMatchId: null,
+          matches: makeRoundMatches(i, `G${i} Casa 1`, `G${i} Ospite 1`),
+          picks: {}
         };
       }
 
-      function normalizeState(raw) {
-        const seed = getSeedState();
-        const src = raw && typeof raw === "object" ? raw : seed;
+      const next = structuredClone(state);
+      next.tournaments[id] = {
+        id,
+        name,
+        activeRound: 1,
+        players: BASE_PLAYERS.map(p => ({ ...p, basePoints: 0, pinChanged: false })),
+        requests: [],
+        rounds
+      };
+      next.activeTournamentId = id;
+      currentTournamentId = id;
+      selectedRound = 1;
+      await savePlatform(next);
+      notify("ok", `Torneo "${name}" creato e attivato!`);
+    };
 
-        const players = Array.isArray(src.players) && src.players.length
-          ? src.players.slice(0, MAX_PLAYERS).map((p, idx) => ({
-              id: p.id || `p${idx + 1}`,
-              name: p.name || `Giocatore ${idx + 1}`,
-              pin: String(p.pin ?? (1101 + idx)),
-              basePoints: Number(p.basePoints) || 0
-            }))
-          : seed.players;
+    window.saveRoundSettings = async function() {
+      const next = structuredClone(state);
+      const rObj = next.tournaments[currentTournamentId].rounds[selectedRound];
+      rObj.deadline = document.getElementById("admDeadline").value || "";
+      rObj.banDeadline = document.getElementById("admBanDeadline").value || "";
+      rObj.banWinnerId = document.getElementById("admBanWinner").value || null;
+      rObj.bannedMatchId = document.getElementById("admBannedMatch").value || null;
+      await savePlatform(next);
+      notify("ok", `Impostazioni Giornata ${selectedRound} salvate!`);
+    };
 
-        const rounds = {};
-        for (const rNum of ALLOWED_ROUNDS) {
-          const rSrc = (src.rounds && src.rounds[rNum]) || seed.rounds[rNum];
-          rounds[rNum] = {
-            deadline: rSrc.deadline || "",
-            banDeadline: rSrc.banDeadline || "",
-            banWinnerId: rSrc.banWinnerId || null,
-            bannedMatchId: rSrc.bannedMatchId || null,
-            matches: Array.isArray(rSrc.matches) ? rSrc.matches : seed.rounds[rNum].matches,
-            picks: rSrc.picks && typeof rSrc.picks === "object" ? rSrc.picks : {}
-          };
-        }
+    window.saveMatches = async function() {
+      const t = getTournament();
+      const matchesArr = Object.values(t.rounds[selectedRound].matches || {});
+      const updated = matchesArr.map((m, idx) => ({
+        id: m.id,
+        home: (document.getElementById("mh" + idx).value || "").trim() || m.home,
+        away: (document.getElementById("ma" + idx).value || "").trim() || m.away,
+        status: document.getElementById("ms" + idx).value,
+        goals: Math.max(0, Number(document.getElementById("mg" + idx).value) || 0),
+        cardPoints: Math.max(0, Number(document.getElementById("mc" + idx).value) || 0)
+      }));
 
-        const activeRound = ALLOWED_ROUNDS.includes(Number(src.activeRound)) ? Number(src.activeRound) : 9;
+      const next = structuredClone(state);
+      next.tournaments[currentTournamentId].rounds[selectedRound].matches = updated;
+      await savePlatform(next);
+      notify("ok", `Partite e risultati Giornata ${selectedRound} salvati!`);
+    };
 
-        return {
-          adminPin: String(src.adminPin || "1234"),
-          activeRound,
-          firebaseUrl: String(src.firebaseUrl || ""),
-          players,
-          rounds
-        };
-      }
+    function render() {
+      if (!state) return;
+      const tourneys = Object.values(state.tournaments || {});
+      const sel = document.getElementById("tournamentSelect");
+      sel.innerHTML = tourneys.map(t => `<option value="${t.id}" ${t.id === currentTournamentId ? "selected" : ""}>${t.name}</option>`).join("");
 
-      function loadState() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) return getSeedState();
-          return normalizeState(JSON.parse(raw));
-        } catch {
-          return getSeedState();
-        }
-      }
+      const t = getTournament();
+      if (!t) return;
 
-      function loadSession() {
-        try {
-          const raw = localStorage.getItem(SESSION_KEY);
-          if (!raw) return null;
-          const parsed = JSON.parse(raw);
-          return parsed.playerId || null;
-        } catch {
-          return null;
-        }
-      }
+      const roundKeys = Object.keys(t.rounds || {}).map(Number).sort((a, b) => a - b);
+      if (!roundKeys.includes(selectedRound)) selectedRound = roundKeys[0] || 9;
 
-      let state = loadState();
-      let activePlayerId = loadSession();
-      if (activePlayerId && !state.players.some(p => p.id === activePlayerId)) {
-        activePlayerId = null;
-      }
+      const el = document.getElementById("content");
+      if (currentTab === "play") renderPlay(el, t, roundKeys);
+      else if (currentTab === "join") renderJoin(el, t);
+      else if (currentTab === "cal") renderCalendar(el, t, roundKeys);
+      else if (currentTab === "rank") renderStandings(el, t, roundKeys);
+      else renderAdmin(el, t, roundKeys);
+    }
 
-      let currentTab = "play";
-      let adminUnlocked = false;
+    function renderPlay(el, t, roundKeys) {
+      const rObj = t.rounds[selectedRound];
+      const closed = isRoundClosed(rObj);
+      const banMatch = rObj.bannedMatchId ? getMatch(rObj, rObj.bannedMatchId) : null;
+      const banHolder = rObj.banWinnerId ? Object.values(t.players || {}).find(p => p.id === rObj.banWinnerId) : null;
+      const matches = Object.values(rObj.matches || {});
 
-      function saveLocal() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      }
-
-      function saveSession() {
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ playerId: activePlayerId }));
-      }
-
-      function getFirebaseEndpoint() {
-        const clean = (state.firebaseUrl || "").trim().replace(/\/+$/, "");
-        if (!clean) return "";
-        return clean.endsWith(".json") ? clean : `${clean}/fenomeni_da_bar.json`;
-      }
-
-      async function syncWithFirebase(pushCurrent = false) {
-        const url = getFirebaseEndpoint();
-        const badge = document.getElementById("syncBadge");
-        if (!url) {
-          badge.className = "status-pill";
-          badge.textContent = "💾 Locale (Browser)";
-          return;
-        }
-        try {
-          if (pushCurrent) {
-            const res = await fetch(url, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(state)
-            });
-            if (!res.ok) throw new Error("Errore scrittura cloud");
-            badge.className = "status-pill live";
-            badge.textContent = "☁️ Sincronizzato";
-          } else {
-            const res = await fetch(url);
-            if (!res.ok) throw new Error("Errore lettura cloud");
-            const data = await res.json();
-            if (data && typeof data === "object") {
-              state = normalizeState(data);
-              saveLocal();
-              badge.className = "status-pill live";
-              badge.textContent = "☁️ Online";
-              renderApp();
+      let html = `
+        <div class="card">
+          <h2>🎯 ${t.name}</h2>
+          <div class="row">
+            ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectedRound=${n};render()">Giornata ${n}</button>`).join("")}
+          </div>
+          <div class="muted" style="margin-top:10px;">
+            Scadenza: <strong>${rObj.deadline ? rObj.deadline.replace("T", " ") : "Non impostata"}</strong> •
+            <span class="badge ${closed ? "red" : "green"}">${closed ? "Chiusa" : "Aperta"}</span>
+          </div>
+          <div class="ban-box">
+            <strong>🛡️ BAN Giornata ${selectedRound}:</strong>
+            ${banMatch
+              ? `<strong>${matchLabel(banMatch)}</strong> — esclusiva di <strong>${banHolder ? banHolder.name : "Detentore"}</strong> (bloccata agli altri).`
+              : "Nessun BAN impostato per questa giornata."
             }
-          }
-        } catch {
-          badge.className = "status-pill";
-          badge.textContent = "⚠️ Offline / Errore Cloud";
+          </div>
+        </div>
+      `;
+
+      if (!loggedPlayer) {
+        const players = getApprovedPlayers(t);
+        html += `
+          <div class="card">
+            <h2>🔒 Login Giocatore</h2>
+            <p class="muted">PIN iniziali 1° Split: 1101–1110 (al primo accesso potrai impostare subito il tuo PIN personale).</p>
+            <div class="grid-2">
+              <div>
+                <label>Giocatore</label>
+                <select id="loginPlayerSel">
+                  <option value="">-- Seleziona --</option>
+                  ${players.map(p => `<option value="${p.id}">${p.name}</option>`).join("")}
+                </select>
+              </div>
+              <div>
+                <label>PIN</label>
+                <input id="loginPinInput" type="password" placeholder="Inserisci PIN" />
+              </div>
+            </div>
+            <div class="row"><button type="button" class="btn primary" onclick="loginPlayer()">Entra</button></div>
+          </div>
+        `;
+        el.innerHTML = html;
+        return;
+      }
+
+      const pick = rObj.picks?.[loggedPlayer.id] || {};
+      const canUseBan = Boolean(rObj.bannedMatchId && rObj.banWinnerId === loggedPlayer.id);
+      const opts = (val) => `<option value="">-- Scegli partita --</option>` + matches.map(m => {
+        const isBan = rObj.bannedMatchId === m.id;
+        const dis = isBan && !canUseBan ? "disabled" : "";
+        const tag = isBan ? (canUseBan ? " [ESCLUSIVA BAN]" : " [BANNATA]") : "";
+        return `<option value="${m.id}" ${val === m.id ? "selected" : ""} ${dis}>${matchLabel(m)}${tag}</option>`;
+      }).join("");
+
+      html += `
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <h2 style="margin:0;">Schedina di ${loggedPlayer.name} — Giornata ${selectedRound}</h2>
+            <button type="button" class="btn secondary" onclick="logoutPlayer()">Esci</button>
+          </div>
+          <div class="grid-3" style="margin-top:12px;">
+            <div><label>⚽ Più Gol</label><select id="pickMoreGoals" ${closed ? "disabled" : ""}>${opts(pick.moreGoals)}</select></div>
+            <div><label>🔒 Meno Gol</label><select id="pickLessGoals" ${closed ? "disabled" : ""}>${opts(pick.lessGoals)}</select></div>
+            <div><label>🟨 Più Cartellini</label><select id="pickMoreCards" ${closed ? "disabled" : ""}>${opts(pick.moreCards)}</select></div>
+          </div>
+          <div class="row">
+            <button type="button" class="btn primary" onclick="savePicks()" ${closed ? "disabled" : ""}>${closed ? "Chiusa" : "Salva Pronostici"}</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <h2 style="margin:0;">🔑 PIN Personale</h2>
+            <span class="badge ${loggedPlayer.pinChanged ? "green" : "gold"}">${loggedPlayer.pinChanged ? "Personalizzato" : "Primo accesso: imposta PIN"}</span>
+          </div>
+          <div class="grid-2" style="margin-top:10px;">
+            <div><label>Nuovo PIN (min. 4 caratteri)</label><input id="newPlayerPin" type="password" /></div>
+            <div><label>Conferma Nuovo PIN</label><input id="confirmPlayerPin" type="password" /></div>
+          </div>
+          <div class="row"><button type="button" class="btn secondary" onclick="changePlayerPin()">Salva Nuovo PIN</button></div>
+        </div>
+      `;
+
+      const nextRound = selectedRound + 1;
+      if (t.rounds[nextRound] && t.rounds[nextRound].banWinnerId === loggedPlayer.id) {
+        const nextMatches = Object.values(t.rounds[nextRound].matches || {});
+        html += `
+          <div class="card">
+            <h2>🛡️ Imposta BAN per la Giornata ${nextRound}</h2>
+            <select id="banMatchSel">
+              <option value="">-- Nessun BAN --</option>
+              ${nextMatches.map(m => `<option value="${m.id}" ${t.rounds[nextRound].bannedMatchId === m.id ? "selected" : ""}>${matchLabel(m)}</option>`).join("")}
+            </select>
+            <div class="row"><button type="button" class="btn gold" onclick="saveBan(${nextRound})">Salva BAN Giornata ${nextRound}</button></div>
+          </div>
+        `;
+      }
+
+      el.innerHTML = html;
+    }
+
+    function renderJoin(el, t) {
+      const reqs = Object.values(t.requests || []);
+      el.innerHTML = `
+        <div class="card">
+          <h2>🙋 Richiedi Accesso — ${t.name}</h2>
+          <p class="muted">Invia la tua richiesta: l'Admin potrà approvarla o rifiutarla dal pannello Admin.</p>
+          <div class="grid-3">
+            <div><label>Nome / Soprannome</label><input id="reqName" placeholder="Es. Marco" /></div>
+            <div><label>PIN desiderato (min. 4)</label><input id="reqPin" type="password" placeholder="Es. 2244" /></div>
+            <div><label>Nota (opzionale)</label><input id="reqNote" placeholder="Gruppo amici" /></div>
+          </div>
+          <div class="row"><button type="button" class="btn primary" onclick="submitJoinRequest()">Invia Richiesta</button></div>
+        </div>
+
+        <div class="card">
+          <h3>Stato Richieste</h3>
+          ${reqs.length ? `
+            <table>
+              <thead><tr><th>Nome</th><th>Stato</th></tr></thead>
+              <tbody>
+                ${reqs.map(r => {
+                  const st = r.status === "approved" ? `<span class="badge green">Approvata</span>` : (r.status === "rejected" ? `<span class="badge red">Rifiutata</span>` : `<span class="badge gold">In attesa</span>`);
+                  return `<tr><td><strong>${r.name}</strong></td><td>${st}</td></tr>`;
+                }).join("")}
+              </tbody>
+            </table>
+          ` : `<div class="muted">Nessuna richiesta inviata finora.</div>`}
+        </div>
+      `;
+    }
+
+    function renderCalendar(el, t, roundKeys) {
+      const rObj = t.rounds[selectedRound];
+      const win = getCategoryWinners(rObj);
+      const matches = Object.values(rObj.matches || {});
+      el.innerHTML = `
+        <div class="card">
+          <h2>📅 Calendario — ${t.name}</h2>
+          <div class="row" style="margin-bottom:10px;">
+            ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectedRound=${n};render()">Giornata ${n}</button>`).join("")}
+          </div>
+          <table>
+            <thead><tr><th>Partita</th><th>Stato</th><th>Gol</th><th>Pt Cart.</th><th>Esito</th></tr></thead>
+            <tbody>
+              ${matches.map(m => {
+                const tags = [];
+                if (rObj.bannedMatchId === m.id) tags.push(`<span class="badge gold">BAN</span>`);
+                if (win.ready && m.status === "played") {
+                  if (win.moreGoals.includes(m.id)) tags.push(`<span class="badge green">+Gol</span>`);
+                  if (win.lessGoals.includes(m.id)) tags.push(`<span class="badge gold">-Gol</span>`);
+                  if (win.moreCards.includes(m.id)) tags.push(`<span class="badge gold">+Cart.</span>`);
+                }
+                const st = m.status === "played" ? `<span class="badge green">Giocata</span>` : (m.status === "postponed" ? `<span class="badge red">Rinviata/Sospesa</span>` : "Programma");
+                return `<tr><td><strong>${matchLabel(m)}</strong></td><td>${st}</td><td>${m.status === "played" ? m.goals : "-"}</td><td>${m.status === "played" ? m.cardPoints : "-"}</td><td>${tags.join(" ") || "-"}</td></tr>`;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderStandings(el, t, roundKeys) {
+      const players = getApprovedPlayers(t);
+      const soloWinners = {};
+      roundKeys.forEach(n => { soloWinners[n] = getRoundSoloWinner(t, n); });
+
+      const rows = players.map(p => {
+        let roundPts = 0;
+        let enPlein = 0;
+        let roundWins = 0;
+        const perRound = {};
+        roundKeys.forEach(n => {
+          const ev = evalPlayerRound(t.rounds[n], p.id);
+          perRound[n] = ev.total;
+          roundPts += ev.total;
+          if (ev.enPlein) enPlein++;
+          if (soloWinners[n] && soloWinners[n].id === p.id) roundWins++;
+        });
+        const base = Number(p.basePoints) || 0;
+        return { name: p.name, base, perRound, enPlein, roundWins, total: base + roundPts };
+      }).sort((a, b) => b.total - a.total || b.enPlein - a.enPlein || b.roundWins - a.roundWins);
+
+      el.innerHTML = `
+        <div class="card">
+          <h2>🏆 Classifica — ${t.name}</h2>
+          <div class="muted">Spareggi: 1) Punti Totali  2) En Plein (TriplettaBOMB)  3) Vittorie di Giornata</div>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Giocatore</th>
+                <th>Base</th>
+                ${roundKeys.map(n => `<th>G${n}</th>`).join("")}
+                <th>En Plein</th>
+                <th>Vitt.</th>
+                <th>Totale</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((r, i) => `
+                <tr>
+                  <td><strong>${i + 1}</strong></td>
+                  <td><strong>${r.name}</strong></td>
+                  <td>${r.base}</td>
+                  ${roundKeys.map(n => `<td>${r.perRound[n] ?? 0}</td>`).join("")}
+                  <td>${r.enPlein}</td>
+                  <td>${r.roundWins}</td>
+                  <td><span class="badge green">${r.total} pt</span></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderAdmin(el, t, roundKeys) {
+      if (!adminUnlocked) {
+        el.innerHTML = `
+          <div class="card">
+            <h2>⚙️ Login Admin</h2>
+            <p class="muted">PIN iniziale Admin: <strong>1234</strong> (al primo accesso puoi impostare subito un nuovo PIN Admin).</p>
+            <div class="grid-2">
+              <div><label>PIN Admin</label><input id="adminPinInput" type="password" placeholder="PIN Admin" /></div>
+            </div>
+            <div class="row"><button type="button" class="btn primary" onclick="unlockAdmin()">Sblocca Admin</button></div>
+          </div>
+        `;
+        return;
+      }
+
+      const pendingReqs = Object.values(t.requests || {}).filter(r => r.status === "pending");
+      const rObj = t.rounds[selectedRound];
+      const matches = Object.values(rObj.matches || {});
+      const players = getApprovedPlayers(t);
+
+      el.innerHTML = `
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <h2 style="margin:0;">⚙️ Pannello Admin</h2>
+            <button type="button" class="btn secondary" onclick="adminUnlocked=false;clearNotify();render()">Blocca</button>
+          </div>
+
+          <h3>1. Richieste di Accesso in Attesa (${pendingReqs.length})</h3>
+          ${pendingReqs.length ? pendingReqs.map(req => `
+            <div class="grid-4" style="margin-bottom:8px;align-items:end;">
+              <div><label>Richiedente</label><div><strong>${req.name}</strong> <span class="muted">(${req.note || "nessuna nota"})</span></div></div>
+              <div><label>PIN assegnato</label><input id="approvePin_${req.id}" value="${req.desiredPin || "1200"}" /></div>
+              <div><label>Punti iniziali</label><input id="approvePts_${req.id}" type="number" value="0" /></div>
+              <div class="row" style="margin-top:0;">
+                <button type="button" class="btn primary" onclick="decideRequest('${req.id}', true)">Approva</button>
+                <button type="button" class="btn danger" onclick="decideRequest('${req.id}', false)">Rifiuta</button>
+              </div>
+            </div>
+          `).join("") : `<div class="muted">Nessuna richiesta in attesa.</div>`}
+
+          <h3 style="margin-top:16px;">2. Indici un Nuovo Torneo</h3>
+          <div class="grid-3">
+            <div><label>Nome Torneo</label><input id="newTourneyName" placeholder="Es. 2° Split" /></div>
+            <div><label>Numero Giornate</label><input id="newTourneyRounds" type="number" min="1" max="10" value="2" /></div>
+            <div style="display:flex;align-items:flex-end;"><button type="button" class="btn gold" onclick="createTournament()">Crea Torneo</button></div>
+          </div>
+
+          <h3 style="margin-top:16px;">3. Gestione Giornata ${selectedRound} &amp; BAN</h3>
+          <div class="row" style="margin-bottom:10px;">
+            ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectedRound=${n};render()">Giornata ${n}</button>`).join("")}
+          </div>
+          <div class="grid-2">
+            <div><label>Scadenza Pronostici</label><input id="admDeadline" type="datetime-local" value="${rObj.deadline || ""}" /></div>
+            <div><label>Scadenza BAN</label><input id="admBanDeadline" type="datetime-local" value="${rObj.banDeadline || ""}" /></div>
+            <div>
+              <label>Detentore BAN</label>
+              <select id="admBanWinner">
+                <option value="">-- Nessuno --</option>
+                ${players.map(p => `<option value="${p.id}" ${rObj.banWinnerId === p.id ? "selected" : ""}>${p.name}</option>`).join("")}
+              </select>
+            </div>
+            <div>
+              <label>Partita Bannata</label>
+              <select id="admBannedMatch">
+                <option value="">-- Nessuna --</option>
+                ${matches.map(m => `<option value="${m.id}" ${rObj.bannedMatchId === m.id ? "selected" : ""}>${matchLabel(m)}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+          <div class="row"><button type="button" class="btn primary" onclick="saveRoundSettings()">Salva Impostazioni Giornata</button></div>
+
+          <h3 style="margin-top:16px;">4. Partite, Gol e Cartellini (solo in campo: Giallo=1, Rosso=2, Doppio Giallo+Rosso=4)</h3>
+          ${matches.map((m, idx) => `
+            <div class="grid-4" style="margin-bottom:8px;">
+              <input id="mh${idx}" value="${m.home}" placeholder="Casa" />
+              <input id="ma${idx}" value="${m.away}" placeholder="Trasferta" />
+              <select id="ms${idx}">
+                <option value="scheduled" ${m.status === "scheduled" ? "selected" : ""}>In programma</option>
+                <option value="played" ${m.status === "played" ? "selected" : ""}>Giocata</option>
+                <option value="postponed" ${m.status === "postponed" ? "selected" : ""}>Rinviata/Sospesa (0pt)</option>
+              </select>
+              <div class="grid-2" style="gap:6px;">
+                <input id="mg${idx}" type="number" min="0" value="${m.goals || 0}" title="Gol totali" />
+                <input id="mc${idx}" type="number" min="0" value="${m.cardPoints || 0}" title="Punti cartellini" />
+              </div>
+            </div>
+          `).join("")}
+          <div class="row"><button type="button" class="btn primary" onclick="saveMatches()">Salva Partite e Risultati</button></div>
+
+          <h3 style="margin-top:16px;">5. Reimposta PIN Admin</h3>
+          <div class="grid-2">
+            <div><label>Nuovo PIN Admin (min. 4)</label><input id="newAdminPin" type="password" /></div>
+            <div><label>Conferma PIN Admin</label><input id="confirmAdminPin" type="password" /></div>
+          </div>
+          <div class="row"><button type="button" class="btn secondary" onclick="changeAdminPin()">Aggiorna PIN Admin</button></div>
+        </div>
+      `;
+    }
+
+    onValue(rootRef, async (snap) => {
+      if (!snap.exists()) {
+        if (!seededOnce) {
+          seededOnce = true;
+          const seed = createSeedPlatform();
+          await savePlatform(seed);
         }
+        return;
       }
-
-      async function persistState() {
-        saveLocal();
-        await syncWithFirebase(true);
+      state = snap.val();
+      if (state.activeTournamentId && !currentTournamentId) {
+        currentTournamentId = state.activeTournamentId;
       }
-
-      function getPlayer(id) {
-        return state.players.find(p => p.id === id) || null;
+      if (!state.tournaments?.[currentTournamentId] && state.activeTournamentId) {
+        currentTournamentId = state.activeTournamentId;
       }
+      document.getElementById("syncStatus").textContent = "Sincronizzato in tempo reale con Firebase";
+      render();
+    }, (err) => {
+      document.getElementById("syncStatus").textContent = "Errore connessione Firebase";
+      notify("err", "Impossibile leggere/scrivere su Firebase: controlla le regole del Realtime Database. (" + err.message + ")");
+    });
+  </script>
+</body>
+</html>
 
-      function getMatch(roundNum, matchId) {
-        const r = state.rounds[roundNum];
-        if (!r) return null;
-        return r.matches.find(m => m.id === matchId) || null;
-      }
-
-      function matchLabel(m) {
-        if (!m) return "-";
-        return `${m.home} - ${m.away}`;
-      }
-
-      function isRoundClosed(roundNum) {
-        const dl = state.rounds[roundNum]?.deadline;
-        if (!dl) return false;
-        const t = new Date(dl).getTime();
-        return !Number.isNaN(t) && Date.now() > t;
-      }
-
-      function isBanClosed(roundNum) {
-        const bdl = state.rounds[roundNum]?.banDeadline;
-        if (!bdl) return false;
-        const t = new Date(bdl).getTime();
-        return !Number.isNaN(t) && Date.now() > t;
-      }
-
-      function getCategoryWinners(roundNum) {
-        const played = (state.rounds[roundNum]?.matches || []).filter(m => m.status === "played");
-        if (!played.length) {
-          return { hasResults: false, moreGoalsIds: [], lessGoalsIds: [], moreCardsIds: [] };
-        }
-        const maxGoals = Math.max(...played.map(m => Number(m.goals) || 0));
-        const minGoals = Math.min(...played.map(m => Number(m.goals) || 0));
-        const maxCards = Math.max(...played.map(m => Number(m.cardPoints) || 0));
-
-        return {
-          hasResults: true,
-          moreGoalsIds: played.filter(m => (Number(m.goals) || 0) === maxGoals).map(m => m.id),
-          lessGoalsIds: played.filter(m => (Number(m.goals) || 0) === minGoals).map(m => m.id),
-          moreCardsIds: played.filter(m => (Number(m.cardPoints) || 0) === maxCards).map(m => m.id)
-        };
-      }
-
-      function evaluatePlayerRound(roundNum, playerId) {
-        const pick = state.rounds[roundNum]?.picks?.[playerId];
-        if (!pick) {
-          return { hasPick: false, pending: true, hits: 0, bonus: 0, total: 0, enPlein: false };
-        }
-        const win = getCategoryWinners(roundNum);
-        if (!win.hasResults) {
-          return { hasPick: true, pending: true, hits: 0, bonus: 0, total: 0, enPlein: false };
-        }
-
-        let hits = 0;
-        const mMore = getMatch(roundNum, pick.moreGoals);
-        const mLess = getMatch(roundNum, pick.lessGoals);
-        const mCards = getMatch(roundNum, pick.moreCards);
-
-        // Partite rinviate/sospese valgono 0 punti
-        if (mMore && mMore.status === "played" && win.moreGoalsIds.includes(mMore.id)) hits++;
-        if (mLess && mLess.status === "played" && win.lessGoalsIds.includes(mLess.id)) hits++;
-        if (mCards && mCards.status === "played" && win.moreCardsIds.includes(mCards.id)) hits++;
-
-        const enPlein = hits === 3;
-        const bonus = enPlein ? 1 : 0;
-        return { hasPick: true, pending: false, hits, bonus, total: hits + bonus, enPlein };
-      }
-
-      function getRoundSoloWinner(roundNum) {
-        const win = getCategoryWinners(roundNum);
-        if (!win.hasResults) {
-        
