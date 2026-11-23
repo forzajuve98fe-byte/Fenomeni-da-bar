@@ -166,7 +166,7 @@
       "2. Calcolo dei cartellini: Valgono esclusivamente i cartellini assegnati ai calciatori in campo (esclusi panchina, staff o provvedimenti fuori dal campo). Punteggi: Cartellino Giallo = 1 punto, Cartellino Rosso diretto = 2 punti, Doppio Giallo + Rosso = 4 punti.",
       "3. Bonus TriplettaBOMB: Chi indovina tutte e 3 le categorie nella stessa giornata (3/3) ottiene +1 punto bonus extra.",
       "4. Partite rinviate o sospese: Le partite rinviate o sospese valgono 0 punti e non assegnano punti categoria.",
-      "5. Regola del BAN: La partita oggetto di BAN è bloccata per tutti i partecipanti tranne che per il detentore del BAN (ad esempio Atalanta - Inter nella Giornata 9 è esclusiva di Enrico Maria). Per il turno successivo (come la Giornata 10), il diritto al BAN spetta solo al vincitore solitario di giornata: in caso di ex aequo al primo posto, non viene assegnato alcun BAN.",
+      "5. Regola del BAN: La partita oggetto di BAN è bloccata per tutti i partecipanti tranne che per il detentore del BAN (ad esempio Atalanta - Inter nella Giornata 9 è esclusiva di Enrico Maria). Il detentore può scegliere la partita da bannare entro le 23:59 del giorno successivo all'ultima partita della giornata (ad esempio lunedì alle 23:59 se l'ultima partita è domenica alle 20:45). In caso di ex aequo al primo posto, non viene assegnato alcun BAN.",
       "6. Scadenze e visibilità pronostici: I pronostici vanno inviati entro la scadenza impostata per la giornata. Prima della scadenza, chi ha inviato vede in chiaro le proprie scelte mentre quelle degli altri restano nascoste; dopo la scadenza (o per l'Admin) vengono mostrate tutte.",
       "7. Accessi, PIN e richieste: Ogni giocatore entra con il proprio nome e PIN personale (modificabile al primo accesso e in qualsiasi momento). Nuovi partecipanti possono inviare una richiesta di accesso dalla scheda dedicata, soggetta ad approvazione dell'Admin.",
       "8. Classifica e criteri di spareggio: La classifica viene ordinata per: 1) Punti Totali, 2) TriplettaBOMB, 3) Vittorie di giornata."
@@ -280,10 +280,30 @@
       return d.toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
     }
 
+    function formatDeadlineLabel(val) {
+      if (!val) return "Non impostata";
+      const d = new Date(val);
+      if (Number.isNaN(d.getTime())) return String(val).replace("T", " ");
+      return d.toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    }
+
     function isRoundClosed(rObj) {
       if (!rObj || !rObj.deadline) return false;
       const ts = new Date(rObj.deadline).getTime();
       return !Number.isNaN(ts) && Date.now() > ts;
+    }
+
+    function isBanExpired(rObj) {
+      if (!rObj || !rObj.banDeadline) return false;
+      const ts = new Date(rObj.banDeadline).getTime();
+      return !Number.isNaN(ts) && Date.now() > ts;
+    }
+
+    function nextDay2359InputValue() {
+      const now = new Date();
+      const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 0, 0);
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(target.getDate())}T${pad(target.getHours())}:${pad(target.getMinutes())}`;
     }
 
     function getCategoryWinners(rObj) {
@@ -406,8 +426,9 @@
         return notify("err", "Seleziona una partita per tutte e 3 le categorie.");
       }
 
-      const canUseBan = Boolean(rObj.bannedMatchId && rObj.banWinnerId === loggedPlayer.id);
-      if (rObj.bannedMatchId && !canUseBan && [moreGoals, lessGoals, moreCards].includes(rObj.bannedMatchId)) {
+      const banActive = Boolean(rObj.bannedMatchId && !isBanExpired(rObj));
+      const canUseBan = Boolean(banActive && rObj.banWinnerId === loggedPlayer.id);
+      if (banActive && !canUseBan && [moreGoals, lessGoals, moreCards].includes(rObj.bannedMatchId)) {
         return notify("err", "La partita bannata non è selezionabile in questo turno.");
       }
 
@@ -421,15 +442,19 @@
     };
 
     window.saveBan = async function(targetRound) {
-      const matchId = document.getElementById("banMatchSel").value || null;
       const next = structuredClone(state);
       const rObj = next.tournaments[currentTournamentId].rounds[targetRound];
+      if (!rObj) return notify("err", `Giornata ${targetRound} non trovata.`);
       if (rObj.banWinnerId !== loggedPlayer.id) {
         return notify("err", "Non hai diritto al BAN per questa giornata.");
       }
+      if (isBanExpired(rObj)) {
+        return notify("err", `Il tempo per impostare il BAN è scaduto (${formatDeadlineLabel(rObj.banDeadline)}).`);
+      }
+      const matchId = document.getElementById("banMatchSel_" + targetRound)?.value || null;
       rObj.bannedMatchId = matchId;
       await savePlatform(next);
-      notify("ok", `BAN Giornata ${targetRound} aggiornato!`);
+      notify("ok", `BAN per la Giornata ${targetRound} salvato!`);
     };
 
     window.submitJoinRequest = async function() {
@@ -631,6 +656,14 @@
       notify("ok", `Tutte le partite della Giornata ${selectedRound} sono state segnate come Giocate!`);
     };
 
+    window.setBanNextDay2359 = function() {
+      const el = document.getElementById("admBanDeadline");
+      if (el) {
+        el.value = nextDay2359InputValue();
+        notify("ok", "Impostata scadenza BAN alle 23:59 di domani: clicca 'Salva Impostazioni Giornata' per confermare.");
+      }
+    };
+
     window.saveRoundSettings = async function() {
       const next = structuredClone(state);
       const rObj = next.tournaments[currentTournamentId].rounds[selectedRound];
@@ -704,9 +737,21 @@
     function renderPlay(el, t, roundKeys) {
       const rObj = t.rounds[selectedRound];
       const closed = isRoundClosed(rObj);
+      const banExpired = isBanExpired(rObj);
       const banMatch = rObj.bannedMatchId ? getMatch(rObj, rObj.bannedMatchId) : null;
       const banHolder = rObj.banWinnerId ? Object.values(t.players || {}).find(p => p.id === rObj.banWinnerId) : null;
       const matches = Object.values(rObj.matches || {});
+
+      let banStatusText = "Nessun BAN impostato per questa giornata.";
+      if (banMatch) {
+        banStatusText = banExpired
+          ? `<strong>${matchLabel(banMatch)}</strong> — assegnata a <strong>${banHolder ? banHolder.name : "Detentore"}</strong> (scadenza BAN: ${formatDeadlineLabel(rObj.banDeadline)}).`
+          : `<strong>${matchLabel(banMatch)}</strong> — esclusiva di <strong>${banHolder ? banHolder.name : "Detentore"}</strong> (bloccata agli altri; scadenza BAN: <strong>${formatDeadlineLabel(rObj.banDeadline)}</strong>).`;
+      } else if (banHolder) {
+        banStatusText = banExpired
+          ? `Detentore: <strong>${banHolder.name}</strong> — tempo per scegliere il BAN scaduto (${formatDeadlineLabel(rObj.banDeadline)}).`
+          : `Detentore: <strong>${banHolder.name}</strong> — può scegliere la partita da bannare entro <strong>${formatDeadlineLabel(rObj.banDeadline)}</strong>.`;
+      }
 
       let html = `
         <div class="card">
@@ -715,15 +760,11 @@
             ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectRound(${n})">Giornata ${n}</button>`).join("")}
           </div>
           <div class="muted" style="margin-top:10px;">
-            Scadenza: <strong>${rObj.deadline ? rObj.deadline.replace("T", " ") : "Non impostata"}</strong> •
+            Scadenza pronostici: <strong>${formatDeadlineLabel(rObj.deadline)}</strong> •
             <span class="badge ${closed ? "red" : "green"}">${closed ? "Chiusa" : "Aperta"}</span>
           </div>
           <div class="ban-box">
-            <strong>🛡️ BAN Giornata ${selectedRound}:</strong>
-            ${banMatch
-              ? `<strong>${matchLabel(banMatch)}</strong> — esclusiva di <strong>${banHolder ? banHolder.name : "Detentore"}</strong> (bloccata agli altri).`
-              : "Nessun BAN impostato per questa giornata."
-            }
+            <strong>🛡️ BAN Giornata ${selectedRound}:</strong> ${banStatusText}
           </div>
         </div>
       `;
@@ -755,9 +796,10 @@
       }
 
       const pick = rObj.picks?.[loggedPlayer.id] || {};
-      const canUseBan = Boolean(rObj.bannedMatchId && rObj.banWinnerId === loggedPlayer.id);
+      const banActive = Boolean(rObj.bannedMatchId && !banExpired);
+      const canUseBan = Boolean(banActive && rObj.banWinnerId === loggedPlayer.id);
       const opts = (val) => `<option value="">-- Scegli partita --</option>` + matches.map(m => {
-        const isBan = rObj.bannedMatchId === m.id;
+        const isBan = banActive && rObj.bannedMatchId === m.id;
         const dis = isBan && !canUseBan ? "disabled" : "";
         const tag = isBan ? (canUseBan ? " [ESCLUSIVA BAN]" : " [BANNATA]") : "";
         return `<option value="${m.id}" ${val === m.id ? "selected" : ""} ${dis}>${matchLabel(m)}${tag}</option>`;
@@ -792,20 +834,33 @@
         </div>
       `;
 
-      const nextRound = selectedRound + 1;
-      if (t.rounds[nextRound] && t.rounds[nextRound].banWinnerId === loggedPlayer.id) {
-        const nextMatches = Object.values(t.rounds[nextRound].matches || {});
+      const banRoundsForUser = roundKeys.filter(n => t.rounds[n]?.banWinnerId === loggedPlayer.id);
+      banRoundsForUser.forEach(rNum => {
+        const targetObj = t.rounds[rNum];
+        const expiredForRound = isBanExpired(targetObj);
+        const roundMatches = Object.values(targetObj.matches || {});
         html += `
           <div class="card">
-            <h2>🛡️ Imposta BAN per la Giornata ${nextRound}</h2>
-            <select id="banMatchSel">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+              <h2 style="margin:0;">🛡️ Potere del BAN — Giornata ${rNum}</h2>
+              <span class="badge ${expiredForRound ? "red" : "gold"}">${expiredForRound ? "Scaduto" : `Entro ${formatDeadlineLabel(targetObj.banDeadline)}`}</span>
+            </div>
+            <p class="muted" style="margin-top:8px;">
+              ${expiredForRound
+                ? `Il tempo utile per scegliere il BAN della Giornata ${rNum} è scaduto.`
+                : `Scegli la partita da bannare per la Giornata ${rNum} entro <strong>${formatDeadlineLabel(targetObj.banDeadline)}</strong> (di norma le 23:59 del giorno dopo l'ultima partita).`
+              }
+            </p>
+            <select id="banMatchSel_${rNum}" ${expiredForRound ? "disabled" : ""}>
               <option value="">-- Nessun BAN --</option>
-              ${nextMatches.map(m => `<option value="${m.id}" ${t.rounds[nextRound].bannedMatchId === m.id ? "selected" : ""}>${matchLabel(m)}</option>`).join("")}
+              ${roundMatches.map(m => `<option value="${m.id}" ${targetObj.bannedMatchId === m.id ? "selected" : ""}>${matchLabel(m)}</option>`).join("")}
             </select>
-            <div class="row"><button type="button" class="btn gold" onclick="saveBan(${nextRound})">Salva BAN Giornata ${nextRound}</button></div>
+            <div class="row">
+              <button type="button" class="btn gold" onclick="saveBan(${rNum})" ${expiredForRound ? "disabled" : ""}>${expiredForRound ? "BAN Scaduto" : `Salva BAN Giornata ${rNum}`}</button>
+            </div>
           </div>
         `;
-      }
+      });
 
       el.innerHTML = html;
     }
@@ -1137,7 +1192,10 @@
           </div>
           <div class="grid-2">
             <div><label>Scadenza Pronostici</label><input id="admDeadline" type="datetime-local" value="${rObj.deadline || ""}" /></div>
-            <div><label>Scadenza BAN</label><input id="admBanDeadline" type="datetime-local" value="${rObj.banDeadline || ""}" /></div>
+            <div>
+              <label>Scadenza BAN (es. lunedì 23:59 dopo domenica sera)</label>
+              <input id="admBanDeadline" type="datetime-local" value="${rObj.banDeadline || ""}" />
+            </div>
             <div>
               <label>Detentore BAN</label>
               <select id="admBanWinner">
@@ -1153,7 +1211,10 @@
               </select>
             </div>
           </div>
-          <div class="row"><button type="button" class="btn primary" onclick="saveRoundSettings()">Salva Impostazioni Giornata</button></div>
+          <div class="row">
+            <button type="button" class="btn secondary" onclick="setBanNextDay2359()">Scadenza BAN: domani 23:59</button>
+            <button type="button" class="btn primary" onclick="saveRoundSettings()">Salva Impostazioni Giornata</button>
+          </div>
 
           <h3 style="margin-top:16px;">5. Partite, Gol e Cartellini — Giornata ${selectedRound} (solo in campo: Giallo=1, Rosso=2, Doppio Giallo+Rosso=4)</h3>
           <div class="row" style="margin-bottom:10px;">
