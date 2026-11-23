@@ -167,7 +167,7 @@
       "3. Bonus TriplettaBOMB: Chi indovina tutte e 3 le categorie nella stessa giornata (3/3) ottiene +1 punto bonus extra.",
       "4. Partite rinviate o sospese: Le partite rinviate o sospese valgono 0 punti e non assegnano punti categoria.",
       "5. Regola del BAN: La partita oggetto di BAN è bloccata per tutti i partecipanti tranne che per il detentore del BAN (ad esempio Atalanta - Inter nella Giornata 9 è esclusiva di Enrico Maria). Per il turno successivo (come la Giornata 10), il diritto al BAN spetta solo al vincitore solitario di giornata: in caso di ex aequo al primo posto, non viene assegnato alcun BAN.",
-      "6. Scadenze e visibilità pronostici: Le schedine vanno inviate entro la scadenza impostata per la giornata. Prima della scadenza, chi ha inviato vede in chiaro le proprie scelte mentre quelle degli altri restano nascoste; dopo la scadenza (o per l'Admin) vengono mostrate tutte.",
+      "6. Scadenze e visibilità pronostici: I pronostici vanno inviati entro la scadenza impostata per la giornata. Prima della scadenza, chi ha inviato vede in chiaro le proprie scelte mentre quelle degli altri restano nascoste; dopo la scadenza (o per l'Admin) vengono mostrate tutte.",
       "7. Accessi, PIN e richieste: Ogni giocatore entra con il proprio nome e PIN personale (modificabile al primo accesso e in qualsiasi momento). Nuovi partecipanti possono inviare una richiesta di accesso dalla scheda dedicata, soggetta ad approvazione dell'Admin.",
       "8. Classifica e criteri di spareggio: La classifica viene ordinata per: 1) Punti Totali, 2) TriplettaBOMB, 3) Vittorie di giornata."
     ].join("\n\n");
@@ -239,6 +239,7 @@
     let loggedPlayer = null;
     let adminUnlocked = false;
     let seededOnce = false;
+    let userPickedRoundManually = false;
 
     function notify(type, text) {
       document.getElementById("banner").innerHTML = `<div class="msg ${type}">${text}</div>`;
@@ -257,7 +258,7 @@
     }
 
     function getSortedRoundKeys(t) {
-      return Object.keys(t?.rounds || {}).map(Number).sort((a, b) => a - b);
+      return Object.keys(t?.rounds || {}).map(Number).filter(n => !Number.isNaN(n)).sort((a, b) => a - b);
     }
 
     function getApprovedPlayers(t) {
@@ -326,6 +327,13 @@
       return top.length === 1 ? top[0] : null;
     }
 
+    window.selectRound = function(n) {
+      selectedRound = Number(n);
+      userPickedRoundManually = true;
+      clearNotify();
+      render();
+    };
+
     window.switchTab = function(tab) {
       currentTab = tab;
       clearNotify();
@@ -339,6 +347,7 @@
     window.onTournamentChange = function(id) {
       currentTournamentId = id;
       loggedPlayer = null;
+      userPickedRoundManually = false;
       const targetT = state?.tournaments?.[id];
       const keys = getSortedRoundKeys(targetT);
       selectedRound = targetT?.activeRound && keys.includes(Number(targetT.activeRound))
@@ -590,8 +599,36 @@
       next.activeTournamentId = id;
       currentTournamentId = id;
       selectedRound = startRound;
+      userPickedRoundManually = true;
       await savePlatform(next);
       notify("ok", `Torneo "${name}" creato (${roundsCount} giornate, dalla ${startRound}° alla ${startRound + roundsCount - 1}°)!`);
+    };
+
+    window.setActiveRound = async function(rNum) {
+      const next = structuredClone(state);
+      next.tournaments[currentTournamentId].activeRound = Number(rNum);
+      selectedRound = Number(rNum);
+      userPickedRoundManually = true;
+      await savePlatform(next);
+      notify("ok", `Giornata ${rNum} impostata come giornata attiva del torneo!`);
+    };
+
+    window.markAllMatchesPlayed = async function() {
+      const t = getTournament();
+      const matchesArr = Object.values(t.rounds[selectedRound].matches || {});
+      const updated = matchesArr.map((m, idx) => ({
+        id: m.id,
+        home: (document.getElementById("mh" + idx)?.value || "").trim() || m.home,
+        away: (document.getElementById("ma" + idx)?.value || "").trim() || m.away,
+        status: "played",
+        goals: Math.max(0, Number(document.getElementById("mg" + idx)?.value) || 0),
+        cardPoints: Math.max(0, Number(document.getElementById("mc" + idx)?.value) || 0)
+      }));
+
+      const next = structuredClone(state);
+      next.tournaments[currentTournamentId].rounds[selectedRound].matches = updated;
+      await savePlatform(next);
+      notify("ok", `Tutte le partite della Giornata ${selectedRound} sono state segnate come Giocate!`);
     };
 
     window.saveRoundSettings = async function() {
@@ -675,7 +712,7 @@
         <div class="card">
           <h2>🎯 ${t.name}</h2>
           <div class="row">
-            ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectedRound=${n};render()">Giornata ${n}</button>`).join("")}
+            ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectRound(${n})">Giornata ${n}</button>`).join("")}
           </div>
           <div class="muted" style="margin-top:10px;">
             Scadenza: <strong>${rObj.deadline ? rObj.deadline.replace("T", " ") : "Non impostata"}</strong> •
@@ -729,7 +766,7 @@
       html += `
         <div class="card">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-            <h2 style="margin:0;">Schedina di ${loggedPlayer.name} — Giornata ${selectedRound}</h2>
+            <h2 style="margin:0;">Pronostici di ${loggedPlayer.name} — Giornata ${selectedRound}</h2>
             <button type="button" class="btn secondary" onclick="logoutPlayer()">Esci</button>
           </div>
           <div class="grid-3" style="margin-top:12px;">
@@ -790,7 +827,7 @@
           </div>
 
           <div class="row" style="margin-top:10px;">
-            ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectedRound=${n};render()">Giornata ${n}</button>`).join("")}
+            ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectRound(${n})">Giornata ${n}</button>`).join("")}
           </div>
 
           <div class="muted" style="margin-top:10px;">
@@ -914,7 +951,7 @@
         <div class="card">
           <h2>📅 Calendario — ${t.name}</h2>
           <div class="row" style="margin-bottom:10px;">
-            ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectedRound=${n};render()">Giornata ${n}</button>`).join("")}
+            ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectRound(${n})">Giornata ${n}</button>`).join("")}
           </div>
           <div class="table-wrap">
             <table>
@@ -1022,7 +1059,7 @@
       }
 
       const pendingReqs = Object.values(t.requests || {}).filter(r => r.status === "pending");
-      const rObj = t.rounds[selectedRound];
+      const rObj = t.rounds[selectedRound] || { deadline: "", banDeadline: "", banWinnerId: null, bannedMatchId: null, matches: [], picks: {} };
       const matches = Object.values(rObj.matches || {});
       const players = getApprovedPlayers(t);
 
@@ -1093,9 +1130,10 @@
             <div style="display:flex;align-items:flex-end;"><button type="button" class="btn gold" onclick="createTournament()">Crea Torneo</button></div>
           </div>
 
-          <h3 style="margin-top:16px;">4. Gestione Giornata ${selectedRound} &amp; BAN</h3>
+          <h3 style="margin-top:16px;">4. Gestione Giornata ${selectedRound} &amp; BAN (Giornata attiva: G${t.activeRound || roundKeys[0] || 1})</h3>
           <div class="row" style="margin-bottom:10px;">
-            ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectedRound=${n};render()">Giornata ${n}</button>`).join("")}
+            ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectRound(${n})">Giornata ${n}</button>`).join("")}
+            <button type="button" class="btn gold" onclick="setActiveRound(${selectedRound})">Imposta G${selectedRound} come Attiva</button>
           </div>
           <div class="grid-2">
             <div><label>Scadenza Pronostici</label><input id="admDeadline" type="datetime-local" value="${rObj.deadline || ""}" /></div>
@@ -1117,7 +1155,10 @@
           </div>
           <div class="row"><button type="button" class="btn primary" onclick="saveRoundSettings()">Salva Impostazioni Giornata</button></div>
 
-          <h3 style="margin-top:16px;">5. Partite, Gol e Cartellini (solo in campo: Giallo=1, Rosso=2, Doppio Giallo+Rosso=4)</h3>
+          <h3 style="margin-top:16px;">5. Partite, Gol e Cartellini — Giornata ${selectedRound} (solo in campo: Giallo=1, Rosso=2, Doppio Giallo+Rosso=4)</h3>
+          <div class="row" style="margin-bottom:10px;">
+            <button type="button" class="btn secondary" onclick="markAllMatchesPlayed()">Segna tutte come Giocate</button>
+          </div>
           ${matches.map((m, idx) => `
             <div class="grid-4" style="margin-bottom:8px;">
               <input id="mh${idx}" value="${m.home}" placeholder="Casa" />
@@ -1173,7 +1214,9 @@
       }
       const activeT = getTournament();
       const keys = getSortedRoundKeys(activeT);
-      if (keys.length && !keys.includes(selectedRound)) {
+      if (!userPickedRoundManually && activeT?.activeRound && keys.includes(Number(activeT.activeRound))) {
+        selectedRound = Number(activeT.activeRound);
+      } else if (keys.length && !keys.includes(selectedRound)) {
         selectedRound = keys[0];
       }
       document.getElementById("syncStatus").textContent = "Sincronizzato in tempo reale con Firebase";
