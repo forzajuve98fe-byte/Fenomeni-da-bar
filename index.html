@@ -82,6 +82,13 @@
       padding: 11px;
       margin-top: 10px;
     }
+    .target-box {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.38);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
     .rules-box {
       background: rgba(9, 18, 26, 0.65);
       border: 1px solid var(--border);
@@ -160,9 +167,9 @@
       "3. Bonus TriplettaBOMB: Chi indovina tutte e 3 le categorie nella stessa giornata (3/3) ottiene +1 punto bonus extra.",
       "4. Partite rinviate o sospese: Le partite rinviate o sospese valgono 0 punti e non assegnano punti categoria.",
       "5. Regola del BAN: La partita oggetto di BAN è bloccata per tutti i partecipanti tranne che per il detentore del BAN (ad esempio Atalanta - Inter nella Giornata 9 è esclusiva di Enrico Maria). Per il turno successivo (come la Giornata 10), il diritto al BAN spetta solo al vincitore solitario di giornata: in caso di ex aequo al primo posto, non viene assegnato alcun BAN.",
-      "6. Scadenze e visibilità pronostici: Le schedine vanno inviate entro la scadenza impostata per la giornata. Prima della scadenza sono visibili solo l'avvenuto invio e l'orario; le scelte vengono mostrate in chiaro dopo la chiusura (oppure all'Admin).",
+      "6. Scadenze e visibilità pronostici: Le schedine vanno inviate entro la scadenza impostata per la giornata. Prima della scadenza, chi ha inviato vede in chiaro le proprie scelte mentre quelle degli altri restano nascoste; dopo la scadenza (o per l'Admin) vengono mostrate tutte.",
       "7. Accessi, PIN e richieste: Ogni giocatore entra con il proprio nome e PIN personale (modificabile al primo accesso e in qualsiasi momento). Nuovi partecipanti possono inviare una richiesta di accesso dalla scheda dedicata, soggetta ad approvazione dell'Admin.",
-      "8. Classifica e criteri di spareggio: La classifica viene ordinata per: 1) Punti Totali, 2) En Plein / TriplettaBOMB, 3) Vittorie di giornata."
+      "8. Classifica e criteri di spareggio: La classifica viene ordinata per: 1) Punti Totali, 2) TriplettaBOMB, 3) Vittorie di giornata."
     ].join("\n\n");
 
     const BASE_PLAYERS = [
@@ -249,6 +256,10 @@
       return state.tournaments[currentTournamentId] || Object.values(state.tournaments)[0] || null;
     }
 
+    function getSortedRoundKeys(t) {
+      return Object.keys(t?.rounds || {}).map(Number).sort((a, b) => a - b);
+    }
+
     function getApprovedPlayers(t) {
       return Object.values(t.players || {}).filter(p => p.status !== "rejected");
     }
@@ -291,7 +302,7 @@
     function evalPlayerRound(rObj, playerId) {
       const pick = rObj?.picks?.[playerId];
       const win = getCategoryWinners(rObj);
-      if (!pick || !win.ready) return { hits: 0, total: 0, enPlein: false };
+      if (!pick || !win.ready) return { hits: 0, total: 0, triplettaBomb: false };
       let hits = 0;
       const m1 = getMatch(rObj, pick.moreGoals);
       const m2 = getMatch(rObj, pick.lessGoals);
@@ -299,8 +310,8 @@
       if (m1 && m1.status === "played" && win.moreGoals.includes(m1.id)) hits++;
       if (m2 && m2.status === "played" && win.lessGoals.includes(m2.id)) hits++;
       if (m3 && m3.status === "played" && win.moreCards.includes(m3.id)) hits++;
-      const enPlein = hits === 3;
-      return { hits, total: hits + (enPlein ? 1 : 0), enPlein };
+      const triplettaBomb = hits === 3;
+      return { hits, total: hits + (triplettaBomb ? 1 : 0), triplettaBomb };
     }
 
     function getRoundSoloWinner(t, rNum) {
@@ -328,6 +339,11 @@
     window.onTournamentChange = function(id) {
       currentTournamentId = id;
       loggedPlayer = null;
+      const targetT = state?.tournaments?.[id];
+      const keys = getSortedRoundKeys(targetT);
+      selectedRound = targetT?.activeRound && keys.includes(Number(targetT.activeRound))
+        ? Number(targetT.activeRound)
+        : (keys[0] || 1);
       clearNotify();
       render();
     };
@@ -392,7 +408,7 @@
         [loggedPlayer.id]: { moreGoals, lessGoals, moreCards, updatedAt: new Date().toISOString() }
       };
       await savePlatform(next);
-      notify("ok", "Pronostici salvati! Li trovi subito nella sezione Pronostici.");
+      notify("ok", "Pronostici salvati! Puoi leggerli subito in chiaro nella scheda Pronostici.");
     };
 
     window.saveBan = async function(targetRound) {
@@ -411,7 +427,7 @@
       const name = (document.getElementById("reqName").value || "").trim();
       const desiredPin = (document.getElementById("reqPin").value || "").trim();
       const note = (document.getElementById("reqNote").value || "").trim();
-      if (!name) return notify("err", "Inserisci il tuo nome o soprannome.");
+      if (!name) return notify("err", "Inserisci Nome e Cognome.");
       if (desiredPin.length < 4) return notify("err", "Scegli un PIN di almeno 4 caratteri.");
 
       const next = structuredClone(state);
@@ -427,7 +443,7 @@
       });
       t.requests = existingReqs;
       await savePlatform(next);
-      notify("ok", "Richiesta inviata! Ora l'Admin potrà approvarla dal pannello Admin.");
+      notify("ok", `Richiesta inviata per "${t.name}"! Ora l'Admin potrà approvarla dal pannello Admin.`);
       document.getElementById("reqName").value = "";
       document.getElementById("reqPin").value = "";
       document.getElementById("reqNote").value = "";
@@ -481,23 +497,83 @@
       }
       t.requests = reqs;
       await savePlatform(next);
-      notify("ok", approve ? `${target.name} approvato ed aggiunto al torneo!` : `Richiesta di ${target.name} rifiutata.`);
+      notify("ok", approve ? `${target.name} approvato ed aggiunto al torneo "${t.name}"!` : `Richiesta di ${target.name} rifiutata.`);
+    };
+
+    window.savePlayerCorrection = async function(playerId, delta) {
+      const next = structuredClone(state);
+      const t = next.tournaments[currentTournamentId];
+      const players = Object.values(t.players || {});
+      const target = players.find(p => p.id === playerId);
+      if (!target) return;
+
+      const inputEl = document.getElementById("corrPts_" + playerId);
+      const pinEl = document.getElementById("corrPin_" + playerId);
+
+      let nextPts = Number(target.basePoints) || 0;
+      if (typeof delta === "number") {
+        nextPts += delta;
+      } else if (inputEl) {
+        nextPts = Number(inputEl.value) || 0;
+      }
+
+      const nextPin = pinEl ? ((pinEl.value || "").trim() || target.pin || "1101") : target.pin;
+      const pinChanged = nextPin !== target.pin ? false : Boolean(target.pinChanged);
+
+      t.players = players.map(p => p.id === playerId
+        ? { ...p, basePoints: nextPts, pin: nextPin, pinChanged }
+        : p
+      );
+
+      await savePlatform(next);
+      if (loggedPlayer && loggedPlayer.id === playerId) {
+        loggedPlayer = { ...loggedPlayer, basePoints: nextPts, pin: nextPin, pinChanged };
+      }
+      notify("ok", `Aggiornati punti/PIN per ${target.name} (correzione/base: ${nextPts} pt).`);
+    };
+
+    window.addManualPlayer = async function() {
+      const name = (document.getElementById("newPlayerName").value || "").trim();
+      const pin = (document.getElementById("newPlayerPinInput").value || "").trim() || "1200";
+      const basePts = Number(document.getElementById("newPlayerBasePts").value) || 0;
+      if (!name) return notify("err", "Inserisci Nome e Cognome del giocatore da aggiungere.");
+      if (pin.length < 4) return notify("err", "Il PIN deve avere almeno 4 caratteri.");
+
+      const next = structuredClone(state);
+      const t = next.tournaments[currentTournamentId];
+      const players = Object.values(t.players || {});
+      players.push({
+        id: "p_" + Date.now(),
+        name,
+        pin,
+        pinChanged: false,
+        basePoints: basePts,
+        status: "approved"
+      });
+      t.players = players;
+      await savePlatform(next);
+      notify("ok", `Giocatore "${name}" aggiunto a "${t.name}"!`);
+      document.getElementById("newPlayerName").value = "";
+      document.getElementById("newPlayerPinInput").value = "";
+      document.getElementById("newPlayerBasePts").value = "0";
     };
 
     window.createTournament = async function() {
       const name = (document.getElementById("newTourneyName").value || "").trim();
-      const roundsCount = Number(document.getElementById("newTourneyRounds").value) || 2;
+      const roundsCount = Math.max(1, Math.min(38, Number(document.getElementById("newTourneyRounds").value) || 10));
+      const startRound = Math.max(1, Math.min(38, Number(document.getElementById("newTourneyStartRound")?.value) || 1));
       if (!name) return notify("err", "Inserisci il nome del nuovo torneo.");
 
       const id = "tourney_" + Date.now();
       const rounds = {};
-      for (let i = 1; i <= roundsCount; i++) {
-        rounds[i] = {
+      for (let offset = 0; offset < roundsCount; offset++) {
+        const rNum = startRound + offset;
+        rounds[rNum] = {
           deadline: "",
           banDeadline: "",
           banWinnerId: null,
           bannedMatchId: null,
-          matches: makeRoundMatches(i, `G${i} Casa 1`, `G${i} Ospite 1`),
+          matches: makeRoundMatches(rNum, `G${rNum} Casa 1`, `G${rNum} Ospite 1`),
           picks: {}
         };
       }
@@ -506,16 +582,16 @@
       next.tournaments[id] = {
         id,
         name,
-        activeRound: 1,
+        activeRound: startRound,
         players: BASE_PLAYERS.map(p => ({ ...p, basePoints: 0, pinChanged: false })),
         requests: [],
         rounds
       };
       next.activeTournamentId = id;
       currentTournamentId = id;
-      selectedRound = 1;
+      selectedRound = startRound;
       await savePlatform(next);
-      notify("ok", `Torneo "${name}" creato e attivato!`);
+      notify("ok", `Torneo "${name}" creato (${roundsCount} giornate, dalla ${startRound}° alla ${startRound + roundsCount - 1}°)!`);
     };
 
     window.saveRoundSettings = async function() {
@@ -573,8 +649,10 @@
       const t = getTournament();
       if (!t) return;
 
-      const roundKeys = Object.keys(t.rounds || {}).map(Number).sort((a, b) => a - b);
-      if (!roundKeys.includes(selectedRound)) selectedRound = roundKeys[0] || 9;
+      const roundKeys = getSortedRoundKeys(t);
+      if (!roundKeys.includes(selectedRound)) {
+        selectedRound = roundKeys[0] || 1;
+      }
 
       const el = document.getElementById("content");
       if (currentTab === "play") renderPlay(el, t, roundKeys);
@@ -618,7 +696,7 @@
         html += `
           <div class="card">
             <h2>🔒 Login Giocatore</h2>
-            <p class="muted">PIN iniziali 1° Split: 1101–1110 (al primo accesso potrai impostare subito il tuo PIN personale).</p>
+            <p class="muted">PIN iniziali: 1101–1110 (al primo accesso potrai impostare subito il tuo PIN personale).</p>
             <div class="grid-2">
               <div>
                 <label>Giocatore</label>
@@ -698,7 +776,6 @@
     function renderPicks(el, t, roundKeys) {
       const rObj = t.rounds[selectedRound];
       const closed = isRoundClosed(rObj);
-      const revealChoices = closed || adminUnlocked;
       const players = getApprovedPlayers(t);
       const picks = rObj.picks || {};
       const submittedCount = players.filter(p => Boolean(picks[p.id])).length;
@@ -717,9 +794,9 @@
           </div>
 
           <div class="muted" style="margin-top:10px;">
-            ${revealChoices
-              ? "Pronostici visibili: qui trovi le giocate inviate per la giornata selezionata."
-              : "Le giocate sono visibili in chiaro dopo la scadenza della giornata (o quando sblocchi l'Admin). Prima della scadenza vedi chi ha già inviato."
+            ${closed || adminUnlocked
+              ? "Pronostici visibili per tutti: qui trovi le giocate inviate per la giornata selezionata."
+              : "Le tue giocate inviate sono subito visibili in chiaro nella tua riga; quelle degli altri restano nascoste fino alla scadenza (o allo sblocco Admin)."
             }
           </div>
 
@@ -753,15 +830,17 @@
                     `;
                   }
 
+                  const isSelf = Boolean(loggedPlayer && loggedPlayer.id === p.id);
+                  const canSeeRow = closed || adminUnlocked || isSelf;
                   const ev = evalPlayerRound(rObj, p.id);
-                  const m1 = revealChoices ? matchLabel(getMatch(rObj, pk.moreGoals)) : "🔒 Nascosto";
-                  const m2 = revealChoices ? matchLabel(getMatch(rObj, pk.lessGoals)) : "🔒 Nascosto";
-                  const m3 = revealChoices ? matchLabel(getMatch(rObj, pk.moreCards)) : "🔒 Nascosto";
-                  const bombTag = ev.enPlein ? ` <span class="badge gold">+1 BOMB</span>` : "";
+                  const m1 = canSeeRow ? matchLabel(getMatch(rObj, pk.moreGoals)) : "🔒 Nascosto";
+                  const m2 = canSeeRow ? matchLabel(getMatch(rObj, pk.lessGoals)) : "🔒 Nascosto";
+                  const m3 = canSeeRow ? matchLabel(getMatch(rObj, pk.moreCards)) : "🔒 Nascosto";
+                  const bombTag = ev.triplettaBomb ? ` <span class="badge gold">+1 TriplettaBOMB</span>` : "";
 
                   return `
                     <tr>
-                      <td><strong>${p.name}</strong></td>
+                      <td><strong>${p.name}</strong>${isSelf ? ` <span class="badge green">Tu</span>` : ""}</td>
                       <td><span class="badge green">Inviata</span></td>
                       <td class="muted">${formatTime(pk.updatedAt)}</td>
                       <td>${m1}</td>
@@ -779,25 +858,41 @@
     }
 
     function renderJoin(el, t) {
+      const tourneys = Object.values(state.tournaments || {});
       const reqs = Object.values(t.requests || []);
       el.innerHTML = `
         <div class="card">
-          <h2>🙋 Richiedi Accesso — ${t.name}</h2>
-          <p class="muted">Invia la tua richiesta: l'Admin potrà approvarla o rifiutarla dal pannello Admin.</p>
-          <div class="grid-3">
-            <div><label>Nome / Soprannome</label><input id="reqName" placeholder="Es. Marco" /></div>
-            <div><label>PIN desiderato (min. 4)</label><input id="reqPin" type="password" placeholder="Es. 2244" /></div>
-            <div><label>Nota (opzionale)</label><input id="reqNote" placeholder="Gruppo amici" /></div>
+          <h2>🙋 Richiedi Accesso al Torneo</h2>
+          <div class="target-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+              <div>
+                <div class="muted" style="font-size:0.78rem;">STAI CHIEDENDO ACCESSO PER IL TORNEO:</div>
+                <strong style="font-size:1.05rem; color:#bbf7d0;">${t.name}</strong>
+              </div>
+              <div style="min-width:210px;">
+                <label>Cambia torneo di destinazione</label>
+                <select onchange="onTournamentChange(this.value)">
+                  ${tourneys.map(tr => `<option value="${tr.id}" ${tr.id === t.id ? "selected" : ""}>${tr.name}</option>`).join("")}
+                </select>
+              </div>
+            </div>
           </div>
-          <div class="row"><button type="button" class="btn primary" onclick="submitJoinRequest()">Invia Richiesta</button></div>
+
+          <p class="muted">Scrivi <strong>Nome e Cognome</strong> per evitare omonimie e scegli un PIN di almeno 4 cifre: l'Admin approverà la richiesta direttamente in <strong>${t.name}</strong>.</p>
+          <div class="grid-3">
+            <div><label>Nome e Cognome</label><input id="reqName" placeholder="Es. Marco Rossi" /></div>
+            <div><label>PIN desiderato (min. 4)</label><input id="reqPin" type="password" placeholder="Es. 2244" /></div>
+            <div><label>Nota (opzionale)</label><input id="reqNote" placeholder="Gruppo amici / paese" /></div>
+          </div>
+          <div class="row"><button type="button" class="btn primary" onclick="submitJoinRequest()">Invia Richiesta per ${t.name}</button></div>
         </div>
 
         <div class="card">
-          <h3>Stato Richieste</h3>
+          <h3>Stato Richieste — ${t.name}</h3>
           ${reqs.length ? `
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Nome</th><th>Stato</th></tr></thead>
+                <thead><tr><th>Nome e Cognome</th><th>Stato</th></tr></thead>
                 <tbody>
                   ${reqs.map(r => {
                     const st = r.status === "approved" ? `<span class="badge green">Approvata</span>` : (r.status === "rejected" ? `<span class="badge red">Rifiutata</span>` : `<span class="badge gold">In attesa</span>`);
@@ -806,7 +901,7 @@
                 </tbody>
               </table>
             </div>
-          ` : `<div class="muted">Nessuna richiesta inviata finora.</div>`}
+          ` : `<div class="muted">Nessuna richiesta inviata finora per ${t.name}.</div>`}
         </div>
       `;
     }
@@ -850,33 +945,33 @@
 
       const rows = players.map(p => {
         let roundPts = 0;
-        let enPlein = 0;
+        let triplettaBombCount = 0;
         let roundWins = 0;
         const perRound = {};
         roundKeys.forEach(n => {
           const ev = evalPlayerRound(t.rounds[n], p.id);
           perRound[n] = ev.total;
           roundPts += ev.total;
-          if (ev.enPlein) enPlein++;
+          if (ev.triplettaBomb) triplettaBombCount++;
           if (soloWinners[n] && soloWinners[n].id === p.id) roundWins++;
         });
         const base = Number(p.basePoints) || 0;
-        return { name: p.name, base, perRound, enPlein, roundWins, total: base + roundPts };
-      }).sort((a, b) => b.total - a.total || b.enPlein - a.enPlein || b.roundWins - a.roundWins);
+        return { name: p.name, base, perRound, triplettaBombCount, roundWins, total: base + roundPts };
+      }).sort((a, b) => b.total - a.total || b.triplettaBombCount - a.triplettaBombCount || b.roundWins - a.roundWins);
 
       el.innerHTML = `
         <div class="card">
           <h2>🏆 Classifica — ${t.name}</h2>
-          <div class="muted">Spareggi: 1) Punti Totali  2) En Plein (TriplettaBOMB)  3) Vittorie di Giornata</div>
+          <div class="muted">Spareggi: 1) Punti Totali  2) TriplettaBOMB  3) Vittorie di Giornata</div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>#</th>
                   <th>Giocatore</th>
-                  <th>Base</th>
+                  <th>Base/Corr.</th>
                   ${roundKeys.map(n => `<th>G${n}</th>`).join("")}
-                  <th>En Plein</th>
+                  <th>TriplettaBOMB</th>
                   <th>Vitt.</th>
                   <th>Totale</th>
                 </tr>
@@ -888,7 +983,7 @@
                     <td><strong>${r.name}</strong></td>
                     <td>${r.base}</td>
                     ${roundKeys.map(n => `<td>${r.perRound[n] ?? 0}</td>`).join("")}
-                    <td>${r.enPlein}</td>
+                    <td>${r.triplettaBombCount}</td>
                     <td>${r.roundWins}</td>
                     <td><span class="badge green">${r.total} pt</span></td>
                   </tr>
@@ -934,11 +1029,11 @@
       el.innerHTML = `
         <div class="card">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-            <h2 style="margin:0;">⚙️ Pannello Admin</h2>
+            <h2 style="margin:0;">⚙️ Pannello Admin — ${t.name}</h2>
             <button type="button" class="btn secondary" onclick="adminUnlocked=false;clearNotify();render()">Blocca</button>
           </div>
 
-          <h3>1. Richieste di Accesso in Attesa (${pendingReqs.length})</h3>
+          <h3>1. Richieste di Accesso in Attesa per "${t.name}" (${pendingReqs.length})</h3>
           ${pendingReqs.length ? pendingReqs.map(req => `
             <div class="grid-4" style="margin-bottom:8px;align-items:end;">
               <div><label>Richiedente</label><div><strong>${req.name}</strong> <span class="muted">(${req.note || "nessuna nota"})</span></div></div>
@@ -949,16 +1044,56 @@
                 <button type="button" class="btn danger" onclick="decideRequest('${req.id}', false)">Rifiuta</button>
               </div>
             </div>
-          `).join("") : `<div class="muted">Nessuna richiesta in attesa.</div>`}
+          `).join("") : `<div class="muted">Nessuna richiesta in attesa per questo torneo.</div>`}
 
-          <h3 style="margin-top:16px;">2. Indici un Nuovo Torneo</h3>
-          <div class="grid-3">
+          <h3 style="margin-top:16px;">2. Correzione Punti &amp; PIN Giocatori</h3>
+          <div class="muted" style="margin-bottom:8px;">Usa +1 / -1 per aggiustamenti rapidi o imposta direttamente il valore Base/Correzione e salva.</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Giocatore</th>
+                  <th>Base / Correzione</th>
+                  <th>Modifica Rapida</th>
+                  <th>PIN</th>
+                  <th>Azione</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${players.map(p => `
+                  <tr>
+                    <td><strong>${p.name}</strong></td>
+                    <td style="max-width:110px;"><input id="corrPts_${p.id}" type="number" value="${Number(p.basePoints) || 0}" /></td>
+                    <td>
+                      <div class="row" style="margin-top:0;">
+                        <button type="button" class="btn secondary" onclick="savePlayerCorrection('${p.id}', -1)">-1</button>
+                        <button type="button" class="btn secondary" onclick="savePlayerCorrection('${p.id}', 1)">+1</button>
+                      </div>
+                    </td>
+                    <td style="max-width:115px;"><input id="corrPin_${p.id}" value="${p.pin || ""}" /></td>
+                    <td><button type="button" class="btn primary" onclick="savePlayerCorrection('${p.id}')">Salva</button></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="grid-4" style="margin-top:10px;align-items:end;">
+            <div><label>Aggiungi giocatore (Nome e Cognome)</label><input id="newPlayerName" placeholder="Es. Marco Rossi" /></div>
+            <div><label>PIN iniziale</label><input id="newPlayerPinInput" placeholder="Es. 1201" /></div>
+            <div><label>Punti base/correzione</label><input id="newPlayerBasePts" type="number" value="0" /></div>
+            <div><button type="button" class="btn secondary" onclick="addManualPlayer()">Aggiungi Giocatore</button></div>
+          </div>
+
+          <h3 style="margin-top:16px;">3. Indici un Nuovo Torneo</h3>
+          <div class="grid-4">
             <div><label>Nome Torneo</label><input id="newTourneyName" placeholder="Es. 2° Split" /></div>
-            <div><label>Numero Giornate</label><input id="newTourneyRounds" type="number" min="1" max="10" value="2" /></div>
+            <div><label>Giornata di partenza</label><input id="newTourneyStartRound" type="number" min="1" max="38" value="1" /></div>
+            <div><label>Numero Giornate</label><input id="newTourneyRounds" type="number" min="1" max="38" value="10" /></div>
             <div style="display:flex;align-items:flex-end;"><button type="button" class="btn gold" onclick="createTournament()">Crea Torneo</button></div>
           </div>
 
-          <h3 style="margin-top:16px;">3. Gestione Giornata ${selectedRound} &amp; BAN</h3>
+          <h3 style="margin-top:16px;">4. Gestione Giornata ${selectedRound} &amp; BAN</h3>
           <div class="row" style="margin-bottom:10px;">
             ${roundKeys.map(n => `<button type="button" class="btn ${n === selectedRound ? "primary" : "secondary"}" onclick="selectedRound=${n};render()">Giornata ${n}</button>`).join("")}
           </div>
@@ -982,7 +1117,7 @@
           </div>
           <div class="row"><button type="button" class="btn primary" onclick="saveRoundSettings()">Salva Impostazioni Giornata</button></div>
 
-          <h3 style="margin-top:16px;">4. Partite, Gol e Cartellini (solo in campo: Giallo=1, Rosso=2, Doppio Giallo+Rosso=4)</h3>
+          <h3 style="margin-top:16px;">5. Partite, Gol e Cartellini (solo in campo: Giallo=1, Rosso=2, Doppio Giallo+Rosso=4)</h3>
           ${matches.map((m, idx) => `
             <div class="grid-4" style="margin-bottom:8px;">
               <input id="mh${idx}" value="${m.home}" placeholder="Casa" />
@@ -1000,7 +1135,7 @@
           `).join("")}
           <div class="row"><button type="button" class="btn primary" onclick="saveMatches()">Salva Partite e Risultati</button></div>
 
-          <h3 style="margin-top:16px;">5. Modifica Regolamento</h3>
+          <h3 style="margin-top:16px;">6. Modifica Regolamento</h3>
           <div>
             <label>Testo del Regolamento punto per punto</label>
             <textarea id="admRulesText">${state.rulesText || DEFAULT_RULES_TEXT}</textarea>
@@ -1010,7 +1145,7 @@
             <button type="button" class="btn secondary" onclick="resetDefaultRules()">Ripristina Predefinito</button>
           </div>
 
-          <h3 style="margin-top:16px;">6. Reimposta PIN Admin</h3>
+          <h3 style="margin-top:16px;">7. Reimposta PIN Admin</h3>
           <div class="grid-2">
             <div><label>Nuovo PIN Admin (min. 4)</label><input id="newAdminPin" type="password" /></div>
             <div><label>Conferma PIN Admin</label><input id="confirmAdminPin" type="password" /></div>
@@ -1033,11 +1168,13 @@
       if (!state.rulesText) {
         state.rulesText = DEFAULT_RULES_TEXT;
       }
-      if (state.activeTournamentId && !currentTournamentId) {
-        currentTournamentId = state.activeTournamentId;
-      }
       if (!state.tournaments?.[currentTournamentId] && state.activeTournamentId) {
         currentTournamentId = state.activeTournamentId;
+      }
+      const activeT = getTournament();
+      const keys = getSortedRoundKeys(activeT);
+      if (keys.length && !keys.includes(selectedRound)) {
+        selectedRound = keys[0];
       }
       document.getElementById("syncStatus").textContent = "Sincronizzato in tempo reale con Firebase";
       render();
