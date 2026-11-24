@@ -75,6 +75,18 @@
       line-height: 1.5;
     }
 
+    .hall-of-fame {
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(217, 119, 6, 0.1));
+      border: 1px solid rgba(251, 191, 36, 0.45);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
     .ban-box {
       background: rgba(251, 191, 36, 0.12);
       border: 1px solid rgba(251, 191, 36, 0.35);
@@ -128,6 +140,8 @@
         </div>
       </div>
 
+      <div id="split1WinnerBanner"></div>
+
       <div class="tabs">
         <button type="button" id="tab-play" class="active" onclick="switchTab('play')">🎯 Gioca &amp; BAN</button>
         <button type="button" id="tab-picks" onclick="switchTab('picks')">📝 Pronostici</button>
@@ -169,7 +183,8 @@
       "5. Regola del BAN: La partita oggetto di BAN è bloccata per tutti i partecipanti tranne che per il detentore del BAN (ad esempio Atalanta - Inter nella Giornata 9 è esclusiva di Enrico Maria). Il detentore può scegliere la partita da bannare entro le 23:59 del giorno successivo all'ultima partita della giornata (ad esempio lunedì alle 23:59 se l'ultima partita è domenica alle 20:45). In caso di ex aequo al primo posto, non viene assegnato alcun BAN.",
       "6. Scadenze e visibilità pronostici: I pronostici vanno inviati entro la scadenza impostata per la giornata. Prima della scadenza, chi ha inviato vede in chiaro le proprie scelte mentre quelle degli altri restano nascoste; dopo la scadenza (o per l'Admin) vengono mostrate tutte.",
       "7. Accessi, PIN e richieste: Ogni giocatore entra con il proprio nome e PIN personale (modificabile al primo accesso e in qualsiasi momento). Nuovi partecipanti possono inviare una richiesta di accesso dalla scheda dedicata, soggetta ad approvazione dell'Admin.",
-      "8. Classifica e criteri di spareggio: La classifica viene ordinata per: 1) Punti Totali, 2) TriplettaBOMB, 3) Vittorie di giornata."
+      "8. Classifica e criteri di spareggio: La classifica viene ordinata per: 1) Punti Totali, 2) TriplettaBOMB, 3) Vittorie di giornata.",
+      "9. Ripartizione Premi: Al termine dello Split il montepremi (5 € a partecipante) viene ripartito tra i primi classificati secondo le quote stabilite per l'edizione. In caso di parità assoluta dopo gli spareggi, le quote interessate vengono sommate e divise in parti uguali."
     ].join("\n\n");
 
     const BASE_PLAYERS = [
@@ -201,6 +216,8 @@
         adminPin: "1234",
         adminPinChanged: false,
         activeTournamentId: "split_1",
+        split1Winner: "",
+        split1Archived: false,
         rulesText: DEFAULT_RULES_TEXT,
         tournaments: {
           split_1: {
@@ -346,6 +363,44 @@
       const top = scores.filter(s => s.pts === maxPts);
       return top.length === 1 ? top[0] : null;
     }
+
+    function renderSplit1WinnerBanner() {
+      const bannerEl = document.getElementById("split1WinnerBanner");
+      if (!bannerEl || !state) return;
+      const winner = (state.split1Winner || "").trim();
+      const archived = Boolean(state.split1Archived);
+      if (!winner && !archived) {
+        bannerEl.innerHTML = "";
+        return;
+      }
+      const label = winner
+        ? `Il vincitore della prima edizione è <strong>${winner}</strong>`
+        : `Prima edizione conclusa`;
+      const switchBtn = currentTournamentId === "split_1" && state.activeTournamentId && state.activeTournamentId !== "split_1"
+        ? `<button type="button" class="btn secondary" onclick="onTournamentChange('${state.activeTournamentId}')">Vai al torneo in corso</button>`
+        : "";
+      bannerEl.innerHTML = `
+        <div class="hall-of-fame">
+          <div>
+            <span class="badge gold">1° SPLIT</span>
+            <span style="margin-left:8px; font-size:0.95rem;">${label}</span>
+          </div>
+          ${switchBtn}
+        </div>
+      `;
+    }
+
+    window.saveSplit1Winner = async function() {
+      const winner = (document.getElementById("admSplit1Winner")?.value || "").trim();
+      const archived = Boolean(document.getElementById("admSplit1Archived")?.checked);
+      const next = structuredClone(state);
+      next.split1Winner = winner;
+      next.split1Archived = archived;
+      await savePlatform(next);
+      notify("ok", winner
+        ? `Salvato il vincitore del 1° Split: "${winner}".`
+        : "Stato del 1° Split aggiornato.");
+    };
 
     window.selectRound = function(n) {
       selectedRound = Number(n);
@@ -721,6 +776,8 @@
       const sel = document.getElementById("tournamentSelect");
       sel.innerHTML = tourneys.map(t => `<option value="${t.id}" ${t.id === currentTournamentId ? "selected" : ""}>${t.name}</option>`).join("");
 
+      renderSplit1WinnerBanner();
+
       const t = getTournament();
       if (!t) return;
 
@@ -740,6 +797,22 @@
     }
 
     function renderPlay(el, t, roundKeys) {
+      if (t.id === "split_1" && state.split1Archived) {
+        const winnerText = (state.split1Winner || "").trim();
+        el.innerHTML = `
+          <div class="card">
+            <h2>🏆 1° Split — Chiuso</h2>
+            <p style="font-size:1.05rem; margin:10px 0;">
+              ${winnerText ? `Il vincitore della prima edizione è <strong>${winnerText}</strong>.` : "La prima edizione si è conclusa."}
+            </p>
+            ${state.activeTournamentId && state.activeTournamentId !== "split_1"
+              ? `<div class="row"><button type="button" class="btn primary" onclick="onTournamentChange('${state.activeTournamentId}')">Passa al torneo attivo</button></div>`
+              : ""}
+          </div>
+        `;
+        return;
+      }
+
       const rObj = t.rounds[selectedRound] || { deadline: "", banDeadline: "", banWinnerId: null, bannedMatchId: null, matches: [], picks: {} };
       const closed = isRoundClosed(rObj);
       const banExpired = isBanExpired(rObj);
@@ -1132,7 +1205,22 @@
             <button type="button" class="btn secondary" onclick="adminUnlocked=false;clearNotify();render()">Blocca</button>
           </div>
 
-          <h3>1. Richieste di Accesso in Attesa per "${t.name}" (${pendingReqs.length})</h3>
+          <h3 style="margin-top:14px;">0. Albo d'Oro 1° Split (visibile in alto)</h3>
+          <div class="grid-2" style="align-items:end;">
+            <div>
+              <label>Vincitore della prima edizione (mostra "Il vincitore della prima edizione è ...")</label>
+              <input id="admSplit1Winner" value="${state.split1Winner || ""}" placeholder="Es. Mario Rossi" />
+            </div>
+            <div>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:18px;">
+                <input id="admSplit1Archived" type="checkbox" style="width:auto;" ${state.split1Archived ? "checked" : ""} />
+                <span>Nascondi schede/partite del 1° Split e lascia solo il vincitore in alto</span>
+              </label>
+            </div>
+          </div>
+          <div class="row"><button type="button" class="btn gold" onclick="saveSplit1Winner()">Salva Vincitore 1° Split</button></div>
+
+          <h3 style="margin-top:16px;">1. Richieste di Accesso in Attesa per "${t.name}" (${pendingReqs.length})</h3>
           ${pendingReqs.length ? pendingReqs.map(req => `
             <div class="grid-4" style="margin-bottom:8px;align-items:end;">
               <div><label>Richiedente</label><div><strong>${req.name}</strong> <span class="muted">(${req.note || "nessuna nota"})</span></div></div>
