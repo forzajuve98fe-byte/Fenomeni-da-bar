@@ -74,6 +74,9 @@
       resize: vertical;
       line-height: 1.5;
     }
+    textarea.compact {
+      min-height: 110px;
+    }
 
     .hall-of-fame {
       background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(217, 119, 6, 0.1));
@@ -86,6 +89,26 @@
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
+    }
+    .prize-box {
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.14), rgba(34, 197, 94, 0.08));
+      border: 1px solid rgba(251, 191, 36, 0.42);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-top: 14px;
+    }
+    .prize-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .prize-list {
+      white-space: pre-line;
+      line-height: 1.6;
+      font-size: 0.94rem;
     }
     .ban-box {
       background: rgba(251, 191, 36, 0.12);
@@ -400,6 +423,15 @@
       notify("ok", winner
         ? `Salvato il vincitore del 1° Split: "${winner}".`
         : "Stato del 1° Split aggiornato.");
+    };
+
+    window.savePrizeInfo = async function() {
+      const total = (document.getElementById("admPrizeTotal")?.value || "").trim();
+      const breakdown = (document.getElementById("admPrizeBreakdown")?.value || "").trim();
+      const next = structuredClone(state);
+      next.tournaments[currentTournamentId].prizeInfo = { total, breakdown };
+      await savePlatform(next);
+      notify("ok", `Montepremi e premi salvati per "${next.tournaments[currentTournamentId].name}"!`);
     };
 
     window.selectRound = function(n) {
@@ -1131,6 +1163,20 @@
         return { name: p.name, base, perRound, triplettaBombCount, roundWins, total: base + roundPts };
       }).sort((a, b) => b.total - a.total || b.triplettaBombCount - a.triplettaBombCount || b.roundWins - a.roundWins);
 
+      const prizeTotal = (t.prizeInfo?.total || "").trim();
+      const prizeBreakdown = (t.prizeInfo?.breakdown || "").trim();
+      const hasPrizeInfo = Boolean(prizeTotal || prizeBreakdown);
+
+      const prizeSectionHtml = hasPrizeInfo ? `
+        <div class="prize-box">
+          <div class="prize-header">
+            <h3 style="margin:0;">💰 Montepremi &amp; Posizioni Premiate</h3>
+            ${prizeTotal ? `<span class="badge gold">Montepremi: ${prizeTotal}</span>` : ""}
+          </div>
+          ${prizeBreakdown ? `<div class="prize-list">${prizeBreakdown}</div>` : ""}
+        </div>
+      ` : "";
+
       el.innerHTML = `
         <div class="card">
           <h2>🏆 Classifica — ${t.name}</h2>
@@ -1163,6 +1209,7 @@
               </tbody>
             </table>
           </div>
+          ${prizeSectionHtml}
         </div>
       `;
     }
@@ -1197,6 +1244,8 @@
       const rObj = t.rounds[selectedRound] || { deadline: "", banDeadline: "", banWinnerId: null, bannedMatchId: null, matches: [], picks: {} };
       const matches = Object.values(rObj.matches || {});
       const players = getApprovedPlayers(t);
+      const prizeTotal = t.prizeInfo?.total || "";
+      const prizeBreakdown = t.prizeInfo?.breakdown || "";
 
       el.innerHTML = `
         <div class="card">
@@ -1219,6 +1268,19 @@
             </div>
           </div>
           <div class="row"><button type="button" class="btn gold" onclick="saveSplit1Winner()">Salva Vincitore 1° Split</button></div>
+
+          <h3 style="margin-top:16px;">💰 Montepremi &amp; Premi per Posizione — "${t.name}" (visibile in fondo alla Classifica)</h3>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <label>Montepremi Totale</label>
+              <input id="admPrizeTotal" value="${prizeTotal}" placeholder="Es. 200 € (40 iscritti x 5 €)" />
+            </div>
+            <div>
+              <label>Ripartizione Premi per Posizione (una posizione per riga)</label>
+              <textarea id="admPrizeBreakdown" class="compact" placeholder="Es.&#10;🥇 1° Classificato: 150 €&#10;🥈 2° Classificato: 50 € Buono Amazon">${prizeBreakdown}</textarea>
+            </div>
+          </div>
+          <div class="row"><button type="button" class="btn gold" onclick="savePrizeInfo()">Salva Montepremi &amp; Premi</button></div>
 
           <h3 style="margin-top:16px;">1. Richieste di Accesso in Attesa per "${t.name}" (${pendingReqs.length})</h3>
           ${pendingReqs.length ? pendingReqs.map(req => `
