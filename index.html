@@ -247,6 +247,8 @@
             id: "split_1",
             name: "1° Split (Giornate 9 & 10)",
             activeRound: 9,
+            winner: "",
+            isCompleted: false,
             players: BASE_PLAYERS,
             requests: [],
             rounds: {
@@ -423,6 +425,20 @@
       notify("ok", winner
         ? `Salvato il vincitore del 1° Split: "${winner}".`
         : "Stato del 1° Split aggiornato.");
+    };
+
+    window.saveTournamentOutcome = async function() {
+      const winner = (document.getElementById("admTourneyWinner")?.value || "").trim();
+      const isCompleted = Boolean(document.getElementById("admTourneyCompleted")?.checked);
+      const next = structuredClone(state);
+      const target = next.tournaments[currentTournamentId];
+      if (!target) return;
+      target.winner = winner;
+      target.isCompleted = isCompleted;
+      await savePlatform(next);
+      notify("ok", isCompleted
+        ? `Torneo "${target.name}" impostato come concluso${winner ? ` (vincitore: ${winner})` : ""}.`
+        : `Stato del torneo "${target.name}" aggiornato.`);
     };
 
     window.savePrizeInfo = async function() {
@@ -705,6 +721,8 @@
         id,
         name,
         activeRound: startRound,
+        winner: "",
+        isCompleted: false,
         players: [],
         requests: [],
         rounds
@@ -819,6 +837,24 @@
       }
 
       const el = document.getElementById("content");
+
+      if (t.isCompleted && currentTab !== "admin") {
+        const winnerName = (t.winner || "").trim();
+        const switchBtn = state.activeTournamentId && state.activeTournamentId !== t.id
+          ? `<div class="row"><button type="button" class="btn primary" onclick="onTournamentChange('${state.activeTournamentId}')">Vai al torneo in corso</button></div>`
+          : "";
+        el.innerHTML = `
+          <div class="card">
+            <h2>🏆 ${t.name}</h2>
+            <p style="font-size:1.05rem; margin:10px 0;">
+              ${winnerName ? `A torneo concluso, il vincitore è <strong>${winnerName}</strong>.` : "A torneo concluso."}
+            </p>
+            ${switchBtn}
+          </div>
+        `;
+        return;
+      }
+
       if (currentTab === "play") renderPlay(el, t, roundKeys);
       else if (currentTab === "picks") renderPicks(el, t, roundKeys);
       else if (currentTab === "join") renderJoin(el, t);
@@ -1254,7 +1290,22 @@
             <button type="button" class="btn secondary" onclick="adminUnlocked=false;clearNotify();render()">Blocca</button>
           </div>
 
-          <h3 style="margin-top:14px;">0. Albo d'Oro 1° Split (visibile in alto)</h3>
+          <h3 style="margin-top:14px;">🏁 Esito &amp; Chiusura — "${t.name}"</h3>
+          <div class="grid-2" style="align-items:end;">
+            <div>
+              <label>Vincitore del torneo</label>
+              <input id="admTourneyWinner" value="${t.winner || ""}" placeholder="Es. Mario Rossi" />
+            </div>
+            <div>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:18px;">
+                <input id="admTourneyCompleted" type="checkbox" style="width:auto;" ${t.isCompleted ? "checked" : ""} />
+                <span>Torneo concluso (mostra solo l'esito quando selezionato)</span>
+              </label>
+            </div>
+          </div>
+          <div class="row"><button type="button" class="btn gold" onclick="saveTournamentOutcome()">Salva Esito Torneo</button></div>
+
+          <h3 style="margin-top:16px;">0. Albo d'Oro 1° Split (visibile in alto)</h3>
           <div class="grid-2" style="align-items:end;">
             <div>
               <label>Vincitore della prima edizione (mostra "Il vincitore della prima edizione è ...")</label>
