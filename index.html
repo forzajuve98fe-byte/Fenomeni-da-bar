@@ -78,18 +78,6 @@
       min-height: 110px;
     }
 
-    .hall-of-fame {
-      background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(217, 119, 6, 0.1));
-      border: 1px solid rgba(251, 191, 36, 0.45);
-      border-radius: 12px;
-      padding: 10px 14px;
-      margin-top: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
     .prize-box {
       background: linear-gradient(135deg, rgba(251, 191, 36, 0.14), rgba(34, 197, 94, 0.08));
       border: 1px solid rgba(251, 191, 36, 0.42);
@@ -162,8 +150,6 @@
           <select id="tournamentSelect" onchange="onTournamentChange(this.value)"></select>
         </div>
       </div>
-
-      <div id="split1WinnerBanner"></div>
 
       <div class="tabs">
         <button type="button" id="tab-play" class="active" onclick="switchTab('play')">🎯 Gioca &amp; BAN</button>
@@ -239,8 +225,6 @@
         adminPin: "1234",
         adminPinChanged: false,
         activeTournamentId: "split_1",
-        split1Winner: "",
-        split1Archived: false,
         rulesText: DEFAULT_RULES_TEXT,
         tournaments: {
           split_1: {
@@ -382,6 +366,7 @@
       const win = getCategoryWinners(rObj);
       if (!rObj || !win.ready) return null;
       const players = getApprovedPlayers(t);
+      if (!players.length) return null;
       const scores = players.map(p => ({ id: p.id, name: p.name, pts: evalPlayerRound(rObj, p.id).total }));
       const maxPts = Math.max(...scores.map(s => s.pts));
       if (maxPts <= 0) return null;
@@ -389,43 +374,12 @@
       return top.length === 1 ? top[0] : null;
     }
 
-    function renderSplit1WinnerBanner() {
-      const bannerEl = document.getElementById("split1WinnerBanner");
-      if (!bannerEl || !state) return;
-      const winner = (state.split1Winner || "").trim();
-      const archived = Boolean(state.split1Archived);
-      if (!winner && !archived) {
-        bannerEl.innerHTML = "";
-        return;
-      }
-      const label = winner
-        ? `Il vincitore della prima edizione è <strong>${winner}</strong>`
-        : `Prima edizione conclusa`;
-      const switchBtn = currentTournamentId === "split_1" && state.activeTournamentId && state.activeTournamentId !== "split_1"
-        ? `<button type="button" class="btn secondary" onclick="onTournamentChange('${state.activeTournamentId}')">Vai al torneo in corso</button>`
-        : "";
-      bannerEl.innerHTML = `
-        <div class="hall-of-fame">
-          <div>
-            <span class="badge gold">1° SPLIT</span>
-            <span style="margin-left:8px; font-size:0.95rem;">${label}</span>
-          </div>
-          ${switchBtn}
-        </div>
-      `;
+    function syncNextRoundBanFromWinner(tournamentObj, completedRoundNum) {
+      const nextRoundNum = Number(completedRoundNum) + 1;
+      if (!tournamentObj?.rounds?.[nextRoundNum]) return;
+      const soloWinner = getRoundSoloWinner(tournamentObj, Number(completedRoundNum));
+      tournamentObj.rounds[nextRoundNum].banWinnerId = soloWinner ? soloWinner.id : null;
     }
-
-    window.saveSplit1Winner = async function() {
-      const winner = (document.getElementById("admSplit1Winner")?.value || "").trim();
-      const archived = Boolean(document.getElementById("admSplit1Archived")?.checked);
-      const next = structuredClone(state);
-      next.split1Winner = winner;
-      next.split1Archived = archived;
-      await savePlatform(next);
-      notify("ok", winner
-        ? `Salvato il vincitore del 1° Split: "${winner}".`
-        : "Stato del 1° Split aggiornato.");
-    };
 
     window.saveTournamentOutcome = async function() {
       const winner = (document.getElementById("admTourneyWinner")?.value || "").trim();
@@ -746,7 +700,8 @@
 
     window.markAllMatchesPlayed = async function() {
       const t = getTournament();
-      const matchesArr = Object.values(t.rounds[selectedRound].matches || {});
+      const rNum = Number(selectedRound);
+      const matchesArr = Object.values(t.rounds[rNum].matches || {});
       const updated = matchesArr.map((m, idx) => ({
         id: m.id,
         home: (document.getElementById("mh" + idx)?.value || "").trim() || m.home,
@@ -757,9 +712,12 @@
       }));
 
       const next = structuredClone(state);
-      next.tournaments[currentTournamentId].rounds[selectedRound].matches = updated;
+      const targetT = next.tournaments[currentTournamentId];
+      targetT.rounds[rNum].matches = updated;
+      syncNextRoundBanFromWinner(targetT, rNum);
       await savePlatform(next);
-      notify("ok", `Tutte le partite della Giornata ${selectedRound} sono state segnate come Giocate!`);
+      const soloWin = getRoundSoloWinner(targetT, rNum);
+      notify("ok", `Tutte le partite della Giornata ${rNum} segnate come Giocate! ${soloWin ? `Vincitore unico G${rNum}: ${soloWin.name} (BAN assegnato per G${rNum + 1}).` : `Nessun vincitore unico in G${rNum} (ex aequo o 0 pt: nessun BAN automatico per G${rNum + 1}).`}`);
     };
 
     window.setBanNextDay2359 = function() {
@@ -795,12 +753,15 @@
       }));
 
       const next = structuredClone(state);
-      next.tournaments[currentTournamentId].rounds[rNum].matches = updated;
-      next.tournaments[currentTournamentId].activeRound = rNum;
+      const targetT = next.tournaments[currentTournamentId];
+      targetT.rounds[rNum].matches = updated;
+      targetT.activeRound = rNum;
+      syncNextRoundBanFromWinner(targetT, rNum);
       selectedRound = rNum;
       hasInitializedRound = true;
       await savePlatform(next);
-      notify("ok", `Partite e risultati Giornata ${rNum} salvati! Ora è attiva su Giornata ${rNum}.`);
+      const soloWin = getRoundSoloWinner(targetT, rNum);
+      notify("ok", `Partite e risultati Giornata ${rNum} salvati! ${soloWin ? `Vincitore unico G${rNum}: ${soloWin.name} (BAN assegnato per G${rNum + 1}).` : `Nessun vincitore unico in G${rNum} (ex aequo o 0 pt: nessun BAN automatico per G${rNum + 1}).`}`);
     };
 
     window.saveRulesText = async function() {
@@ -825,8 +786,6 @@
       const tourneys = Object.values(state.tournaments || {});
       const sel = document.getElementById("tournamentSelect");
       sel.innerHTML = tourneys.map(t => `<option value="${t.id}" ${t.id === currentTournamentId ? "selected" : ""}>${t.name}</option>`).join("");
-
-      renderSplit1WinnerBanner();
 
       const t = getTournament();
       if (!t) return;
@@ -865,22 +824,6 @@
     }
 
     function renderPlay(el, t, roundKeys) {
-      if (t.id === "split_1" && state.split1Archived) {
-        const winnerText = (state.split1Winner || "").trim();
-        el.innerHTML = `
-          <div class="card">
-            <h2>🏆 1° Split — Chiuso</h2>
-            <p style="font-size:1.05rem; margin:10px 0;">
-              ${winnerText ? `Il vincitore della prima edizione è <strong>${winnerText}</strong>.` : "La prima edizione si è conclusa."}
-            </p>
-            ${state.activeTournamentId && state.activeTournamentId !== "split_1"
-              ? `<div class="row"><button type="button" class="btn primary" onclick="onTournamentChange('${state.activeTournamentId}')">Passa al torneo attivo</button></div>`
-              : ""}
-          </div>
-        `;
-        return;
-      }
-
       const rObj = t.rounds[selectedRound] || { deadline: "", banDeadline: "", banWinnerId: null, bannedMatchId: null, matches: [], picks: {} };
       const closed = isRoundClosed(rObj);
       const banExpired = isBanExpired(rObj);
@@ -888,7 +831,7 @@
       const banHolder = rObj.banWinnerId ? Object.values(t.players || {}).find(p => p.id === rObj.banWinnerId) : null;
       const matches = Object.values(rObj.matches || {});
 
-      let banStatusText = "Nessun BAN impostato per questa giornata.";
+      let banStatusText = "Nessun BAN impostato per questa giornata (nessun vincitore unico nel turno precedente o non ancora assegnato).";
       if (banMatch) {
         banStatusText = banExpired
           ? `<strong>${matchLabel(banMatch)}</strong> — assegnata a <strong>${banHolder ? banHolder.name : "Detentore"}</strong> (scadenza BAN: ${formatDeadlineLabel(rObj.banDeadline)}).`
@@ -1196,7 +1139,7 @@
           if (soloWinners[n] && soloWinners[n].id === p.id) roundWins++;
         });
         const base = Number(p.basePoints) || 0;
-        return { name: p.name, base, perRound, triplettaBombCount, roundWins, total: base + roundPts };
+        return { id: p.id, name: p.name, base, perRound, triplettaBombCount, roundWins, total: base + roundPts };
       }).sort((a, b) => b.total - a.total || b.triplettaBombCount - a.triplettaBombCount || b.roundWins - a.roundWins);
 
       const prizeTotal = (t.prizeInfo?.total || "").trim();
@@ -1216,7 +1159,7 @@
       el.innerHTML = `
         <div class="card">
           <h2>🏆 Classifica — ${t.name}</h2>
-          <div class="muted">Spareggi: 1) Punti Totali  2) TriplettaBOMB  3) Vittorie di Giornata</div>
+          <div class="muted">Spareggi: 1) Punti Totali · 2) TriplettaBOMB · 3) Vittorie di Giornata (punteggio in <strong>grassetto</strong> = vincitore unico di giornata / detentore BAN turno successivo)</div>
           <div class="table-wrap">
             <table>
               <thead>
@@ -1236,7 +1179,11 @@
                     <td><strong>${i + 1}</strong></td>
                     <td><strong>${r.name}</strong></td>
                     <td>${r.base}</td>
-                    ${roundKeys.map(n => `<td>${r.perRound[n] ?? 0}</td>`).join("")}
+                    ${roundKeys.map(n => {
+                      const val = r.perRound[n] ?? 0;
+                      const isRoundWinner = soloWinners[n] && soloWinners[n].id === r.id;
+                      return `<td>${isRoundWinner ? `<strong>${val}</strong>` : val}</td>`;
+                    }).join("")}
                     <td>${r.triplettaBombCount}</td>
                     <td>${r.roundWins}</td>
                     <td><span class="badge green">${r.total} pt</span></td>
@@ -1304,21 +1251,6 @@
             </div>
           </div>
           <div class="row"><button type="button" class="btn gold" onclick="saveTournamentOutcome()">Salva Esito Torneo</button></div>
-
-          <h3 style="margin-top:16px;">0. Albo d'Oro 1° Split (visibile in alto)</h3>
-          <div class="grid-2" style="align-items:end;">
-            <div>
-              <label>Vincitore della prima edizione (mostra "Il vincitore della prima edizione è ...")</label>
-              <input id="admSplit1Winner" value="${state.split1Winner || ""}" placeholder="Es. Mario Rossi" />
-            </div>
-            <div>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:18px;">
-                <input id="admSplit1Archived" type="checkbox" style="width:auto;" ${state.split1Archived ? "checked" : ""} />
-                <span>Nascondi schede/partite del 1° Split e lascia solo il vincitore in alto</span>
-              </label>
-            </div>
-          </div>
-          <div class="row"><button type="button" class="btn gold" onclick="saveSplit1Winner()">Salva Vincitore 1° Split</button></div>
 
           <h3 style="margin-top:16px;">💰 Montepremi &amp; Premi per Posizione — "${t.name}" (visibile in fondo alla Classifica)</h3>
           <div class="grid-2" style="align-items:start;">
@@ -1405,7 +1337,7 @@
               <input id="admBanDeadline" type="datetime-local" value="${rObj.banDeadline || ""}" />
             </div>
             <div>
-              <label>Detentore BAN</label>
+              <label>Detentore BAN (aggiornato in automatico dal vincitore unico del turno precedente, modificabile qui)</label>
               <select id="admBanWinner">
                 <option value="">-- Nessuno --</option>
                 ${players.map(p => `<option value="${p.id}" ${rObj.banWinnerId === p.id ? "selected" : ""}>${p.name}</option>`).join("")}
